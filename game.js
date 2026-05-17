@@ -844,6 +844,8 @@ class WordMatchGame {
         this.moves = 999;
         this.bombMode = false;
         this.bombSelected = [];
+        this.targetWords = null;
+        this.currentWordIndex = 0;
     }
 
     loadReviewWord() {
