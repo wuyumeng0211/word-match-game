@@ -101,9 +101,14 @@ class SoundManager {
         if (!this.speakEnabled) return;
         if (!window.speechSynthesis) return;
         this.initVoices();
-        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.volume = 1;
+        if (window.speechSynthesis.speaking) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+        }
+        if (!text || !text.trim()) return;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US'; u.rate = 0.85; u.volume = 1;
         if (this.preferredVoice) u.voice = this.preferredVoice;
+        u.onerror = (e) => { console.warn('TTS error:', e.error); };
         try {
             window.speechSynthesis.speak(u);
         } catch(e) { console.warn('Speech synthesis failed:', e); }
@@ -242,6 +247,15 @@ class WordMatchGame {
     }
 
     init() {
+        window.onerror = (msg, url, line, col, err) => {
+            console.error('Game error:', msg, 'at', line, col, err);
+            const indicator = document.getElementById('saveIndicator');
+            if (indicator) {
+                indicator.textContent = '错误: ' + msg;
+                indicator.classList.add('show');
+                setTimeout(() => indicator.classList.remove('show'), 5000);
+            }
+        };
         this.bindEvents();
         this.updateGlobalStats();
         this.renderAchievements();
@@ -696,10 +710,7 @@ class WordMatchGame {
         this.sound.ensureContext();
         if (window.speechSynthesis) {
             this.sound.initVoices();
-            // 用一个空 utterance 解锁移动端 speech synthesis
-            const empty = new SpeechSynthesisUtterance('');
-            empty.volume = 0;
-            try { window.speechSynthesis.speak(empty); } catch(e){}
+            try { window.speechSynthesis.cancel(); } catch(e){}
         }
     }
 
@@ -798,7 +809,14 @@ class WordMatchGame {
     }
 
     loadLevel() {
-        const group = this.wordLevels[Math.min(this.level - 1, this.wordLevels.length - 1)];
+        const idx = Math.min(this.level - 1, this.wordLevels.length - 1);
+        const group = this.wordLevels[idx];
+        if (!group || group.length === 0) {
+            console.error('No words for level', this.level);
+            alert('加载关卡数据失败，请检查 words.json 文件');
+            this.backToMenu();
+            return;
+        }
         const shuffled = [...group].sort(() => Math.random() - 0.5);
         this.targetWords = shuffled.slice(0, Math.min(3, shuffled.length));
         this.currentWordIndex = 0;
@@ -890,7 +908,10 @@ class WordMatchGame {
         return 0.35;
     }
 
-    generateBoard() {
+    generateBoard(attempts = 0) {
+        if (attempts > 50) {
+            console.warn('generateBoard: max attempts reached, forcing valid board');
+        }
         const pool = this.getLetterPool();
         const targetSet = new Set(this.targetWord.split(''));
         const targetWeight = this.getTargetWeight();
@@ -907,7 +928,7 @@ class WordMatchGame {
             }
         }
         this.removeInitialMatches();
-        if (!this.hasAnyValidMove()) this.generateBoard();
+        if (!this.hasAnyValidMove() && attempts <= 50) this.generateBoard(attempts + 1);
     }
 
     removeInitialMatches() {
@@ -1327,7 +1348,8 @@ class WordMatchGame {
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    setTimeout(() => this.showWordComplete(), 400);
+                    this.isProcessing = true;
+                    setTimeout(() => { this.isProcessing = false; this.showWordComplete(); }, 400);
                 } else {
                     this.score += this.moves * 50;
                     this.checkBombReward();
@@ -1337,7 +1359,8 @@ class WordMatchGame {
                     if (this.levelBombsUsed === 0) this.unlockAchievement('zero_bomb');
                     if (this.levelResetCount === 0) this.unlockAchievement('perfect_level');
                     if (this.level >= this.wordLevels.length) this.unlockAchievement('master');
-                    setTimeout(() => this.showModal('win'), 400);
+                    this.isProcessing = true;
+                    setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
                 }
             } else if (this.gameMode === 'timed') {
                 this.score += 100 + this.targetWord.length * 50;
@@ -1345,10 +1368,12 @@ class WordMatchGame {
                 this.updateTimedUI();
                 this.sound.play('win');
                 this.sound.speak(this.targetWord + '. ' + this.targetSentence);
+                this.isProcessing = true;
                 setTimeout(() => {
                     this.loadRandomWord();
                     this.generateBoard();
                     this.renderBoard();
+                    this.isProcessing = false;
                 }, 500);
             } else if (this.gameMode === 'endless') {
                 this.endlessWords++;
@@ -1358,11 +1383,13 @@ class WordMatchGame {
                 this.updateEndlessUI();
                 this.sound.play('win');
                 this.sound.speak(this.targetWord + '. ' + this.targetSentence);
+                this.isProcessing = true;
                 setTimeout(() => {
                     this.loadRandomWord();
                     this.generateBoard();
                     this.renderBoard();
                     this.applyTheme();
+                    this.isProcessing = false;
                 }, 500);
             } else if (this.gameMode === 'review') {
                 if (this.currentWordIndex < this.targetWords.length - 1) {
@@ -1371,14 +1398,16 @@ class WordMatchGame {
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    setTimeout(() => this.showWordComplete(), 400);
+                    this.isProcessing = true;
+                    setTimeout(() => { this.isProcessing = false; this.showWordComplete(); }, 400);
                 } else {
                     this.score += 50;
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    setTimeout(() => this.showModal('win'), 400);
+                    this.isProcessing = true;
+                    setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
                 }
             } else if (this.gameMode === 'daily') {
                 this.score += this.moves * 50;
@@ -1391,7 +1420,8 @@ class WordMatchGame {
                 if (this.score > currentBest) {
                     this.saveDaily({ date: daily.date, score: this.score, word: this.targetWord });
                 }
-                setTimeout(() => this.showModal('win'), 400);
+                this.isProcessing = true;
+                setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
             }
         }
     }
@@ -1514,6 +1544,14 @@ class WordMatchGame {
     closeModal() { document.getElementById('modal').classList.remove('active'); }
 
     nextLevel() {
+        this.clearHint();
+        this.resetAutoHint();
+        this.bombMode = false;
+        this.bombSelected = [];
+        this.isProcessing = false;
+        document.getElementById('gameBoard').style.cursor = '';
+        document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
+
         this.level++;
         this.loadLevel();
         this.generateBoard();
@@ -1521,6 +1559,7 @@ class WordMatchGame {
         this.updateUI();
         this.applyTheme();
         this.saveGlobal();
+        this.startAutoHint();
     }
 
     nextReview() {
