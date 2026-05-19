@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s *)",
+      "Bash(npx netlify-cli sites:list)",
+      "Bash(npx netlify-cli status)",
+      "Bash(npx netlify-cli api getCurrentUser)",
+      "Bash(npx netlify-cli api getSite --data *)"
+    ]
+  }
+}

@@ -71,6 +71,14 @@
         </div>
 
         <div id="gameScreen" style="display:none">
+            <div class="character-bar" id="characterBar">
+                <div class="character-avatar" id="characterAvatar">🦖</div>
+                <div class="character-info">
+                    <div class="character-name" id="characterName">像素龙</div>
+                    <div class="character-buff" id="characterBuff">💚 每局额外1步</div>
+                </div>
+                <div class="character-item-slot" id="characterItemSlot"></div>
+            </div>
             <div class="level-info">
                 <div class="info-item"><div class="info-label" id="labelLevel">关卡</div><div class="info-value" id="level">1</div></div>
                 <div class="info-item"><div class="info-label" id="labelMoves">步数</div><div class="info-value" id="moves">30</div></div>
@@ -170,7 +178,9 @@
             <div class="modal-title">🛒 外观商店</div>
             <div class="shop-score" id="shopScore">当前积分: 0</div>
             <div class="shop-tabs" id="shopTabs">
-                <div class="shop-tab active" data-shop-tab="theme">主题</div>
+                <div class="shop-tab active" data-shop-tab="character">🎮 角色</div>
+                <div class="shop-tab" data-shop-tab="item">🎒 道具</div>
+                <div class="shop-tab" data-shop-tab="theme">主题</div>
                 <div class="shop-tab" data-shop-tab="board">棋盘</div>
                 <div class="shop-tab" data-shop-tab="effect">特效</div>
                 <div class="shop-tab" data-shop-tab="frame">边框</div>

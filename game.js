@@ -41,6 +41,23 @@ const SHOP_ITEMS = [
     { id:'gold_frame', name:'黄金词汇王', type:'frame', price:10000, preview:'#ffd700' }
 ];
 
+const CHARACTERS = [
+    { id:'dino', name:'像素龙', emoji:'🦖', price:0, desc:'每局额外1步', effect:'extraMoves', value:1 },
+    { id:'mecha', name:'机甲兵', emoji:'🤖', price:3000, desc:'炸弹充能快15%', effect:'bombDiscount', value:0.85 },
+    { id:'princess', name:'甜心公主', emoji:'👸', price:5000, desc:'提示冷却-1秒', effect:'hintCooldown', value:1000 },
+    { id:'wizard', name:'大法师', emoji:'🧙‍♂️', price:6000, desc:'消除得分+15%', effect:'scoreBonus', value:1.15 },
+    { id:'ninja', name:'暗影忍', emoji:'🥷', price:4000, desc:'刷新棋盘不扣步', effect:'freeShuffle', value:true },
+    { id:'astronaut', name:'宇航员', emoji:'👨‍🚀', price:7000, desc:'限时模式+10秒', effect:'timeBonus', value:10 }
+];
+
+const CHARACTER_ITEMS = [
+    { id:'clover', name:'幸运草', emoji:'🍀', price:1500, desc:'额外+1步', effect:'extraMoves', value:1 },
+    { id:'battery', name:'能量块', emoji:'🔋', price:1500, desc:'炸弹充能再快10%', effect:'bombDiscount', value:0.90 },
+    { id:'glasses', name:'透镜', emoji:'🔍', price:1500, desc:'提示冷却再-0.5秒', effect:'hintCooldown', value:500 },
+    { id:'gem', name:'红宝石', emoji:'💎', price:2000, desc:'得分再+8%', effect:'scoreBonus', value:1.08 },
+    { id:'clock', name:'怀表', emoji:'⏱️', price:1500, desc:'限时模式再+5秒', effect:'timeBonus', value:5 }
+];
+
 const TUTORIAL_STEPS = [
     { icon:'🎮', title:'欢迎来到单词拼拼消', text:'这是一款将英语单词学习和消消乐结合的游戏。每一关你需要拼出3个单词，从3字母逐步挑战到10字母！' },
     { icon:'📖', title:'收集字母拼出单词', text:'点击棋盘上两个相邻的字母进行交换。连成3个或以上相同的字母即可消除，并收集该字母到目标单词中。' },
@@ -230,6 +247,9 @@ class WordMatchGame {
         this.equippedBoard = 'default_board';
         this.equippedEffect = 'default_effect';
         this.equippedFrame = 'default_frame';
+        this.unlockedCharacters = ['dino'];
+        this.equippedCharacter = 'dino';
+        this.equippedItem = null;
         this.particlePool = [];
         this.wordLevels = [];
         this.wordBank = [];
@@ -275,6 +295,9 @@ class WordMatchGame {
                 this.equippedBoard = data.equippedBoard || 'default_board';
                 this.equippedEffect = data.equippedEffect || 'default_effect';
                 this.equippedFrame = data.equippedFrame || 'default_frame';
+                this.unlockedCharacters = data.unlockedCharacters || ['dino'];
+                this.equippedCharacter = data.equippedCharacter || 'dino';
+                this.equippedItem = data.equippedItem || null;
                 if (data.speakEnabled !== undefined) this.sound.speakEnabled = data.speakEnabled;
                 if (version < 2) {
                     this.nextBombAt = Math.max(this.nextBombAt, 8000);
@@ -298,6 +321,9 @@ class WordMatchGame {
             equippedBoard: this.equippedBoard,
             equippedEffect: this.equippedEffect,
             equippedFrame: this.equippedFrame,
+            unlockedCharacters: this.unlockedCharacters,
+            equippedCharacter: this.equippedCharacter,
+            equippedItem: this.equippedItem,
             speakEnabled: this.sound.speakEnabled,
             date: Date.now()
         };
@@ -306,9 +332,11 @@ class WordMatchGame {
     }
 
     checkBombReward() {
+        const discount = this.getEffect('bombDiscount');
+        const interval = discount ? Math.floor(8000 * discount) : 8000;
         while (this.score >= this.nextBombAt) {
             this.bombs++;
-            this.nextBombAt += 8000;
+            this.nextBombAt += interval;
             this.showToast(`💣 获得字母炸弹! (当前 ${this.bombs} 个)`);
         }
     }
@@ -352,6 +380,7 @@ class WordMatchGame {
         this.renderLevelMap();
         this.updateEquipBar();
         this.applyEquippedTheme();
+        this.renderCharacterBar();
         this.renderDailyChallenge();
         const ttsBtn = document.getElementById('ttsBtn');
         if (ttsBtn) {
@@ -475,29 +504,57 @@ class WordMatchGame {
         if (!grid) return;
         grid.innerHTML = '';
         scoreEl.textContent = `当前积分: ${this.score}`;
-        const items = SHOP_ITEMS.filter(i => i.type === type);
-        items.forEach(item => {
-            const owned = this.unlockedSkins.includes(item.id);
-            const equipped = this[`equipped${type.charAt(0).toUpperCase() + type.slice(1)}`] === item.id;
-            const card = document.createElement('div');
-            card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
-            let btnHtml = '';
-            if (equipped) {
-                btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
-            } else if (owned) {
-                btnHtml = `<button class="shop-btn equip" onclick="game.equipSkin('${item.id}')">装备</button>`;
-            } else {
-                const canBuy = this.score >= item.price;
-                btnHtml = `<button class="shop-btn buy" onclick="game.buySkin('${item.id}')" ${canBuy ? '' : 'disabled'}>${item.price === 0 ? '免费' : item.price + '分'}</button>`;
-            }
-            card.innerHTML = `
-                ${equipped ? '<div class="equipped-badge">已装备</div>' : ''}
-                <div class="shop-preview" style="background:${item.preview}"></div>
-                <div class="shop-name">${item.name}</div>
-                ${btnHtml}
-            `;
-            grid.appendChild(card);
-        });
+        if (type === 'character') {
+            CHARACTERS.forEach(ch => {
+                const owned = this.unlockedCharacters.includes(ch.id);
+                const equipped = this.equippedCharacter === ch.id;
+                const card = document.createElement('div');
+                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+                let btnHtml = '';
+                if (equipped) btnHtml = `<button class="shop-btn owned" disabled>已出战</button>`;
+                else if (owned) btnHtml = `<button class="shop-btn equip" onclick="game.equipCharacter('${ch.id}')">出战</button>`;
+                else { const canBuy = this.score >= ch.price; btnHtml = `<button class="shop-btn buy" onclick="game.buyCharacter('${ch.id}')" ${canBuy ? '' : 'disabled'}>${ch.price === 0 ? '免费' : ch.price + '分'}</button>`; }
+                card.innerHTML = `${equipped ? '<div class="equipped-badge">出战中</div>' : ''}<div class="shop-preview" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#1a1a2e;border:2px solid #e94560">${ch.emoji}</div><div class="shop-name">${ch.name}</div><div style="font-size:10px;color:#888;margin-bottom:4px">${ch.desc}</div>${btnHtml}`;
+                grid.appendChild(card);
+            });
+        } else if (type === 'item') {
+            CHARACTER_ITEMS.forEach(it => {
+                const owned = this.unlockedSkins.includes(it.id) || this.equippedItem === it.id;
+                const equipped = this.equippedItem === it.id;
+                const card = document.createElement('div');
+                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+                let btnHtml = '';
+                if (equipped) btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
+                else if (owned) btnHtml = `<button class="shop-btn equip" onclick="game.equipItem('${it.id}')">装备</button>`;
+                else { const canBuy = this.score >= it.price; btnHtml = `<button class="shop-btn buy" onclick="game.buyItem('${it.id}')" ${canBuy ? '' : 'disabled'}>${it.price}分</button>`; }
+                card.innerHTML = `${equipped ? '<div class="equipped-badge">已装备</div>' : ''}<div class="shop-preview" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#f8f9fa">${it.emoji}</div><div class="shop-name">${it.name}</div><div style="font-size:10px;color:#888;margin-bottom:4px">${it.desc}</div>${btnHtml}`;
+                grid.appendChild(card);
+            });
+        } else {
+            const items = SHOP_ITEMS.filter(i => i.type === type);
+            items.forEach(item => {
+                const owned = this.unlockedSkins.includes(item.id);
+                const equipped = this[`equipped${type.charAt(0).toUpperCase() + type.slice(1)}`] === item.id;
+                const card = document.createElement('div');
+                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+                let btnHtml = '';
+                if (equipped) {
+                    btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
+                } else if (owned) {
+                    btnHtml = `<button class="shop-btn equip" onclick="game.equipSkin('${item.id}')">装备</button>`;
+                } else {
+                    const canBuy = this.score >= item.price;
+                    btnHtml = `<button class="shop-btn buy" onclick="game.buySkin('${item.id}')" ${canBuy ? '' : 'disabled'}>${item.price === 0 ? '免费' : item.price + '分'}</button>`;
+                }
+                card.innerHTML = `
+                    ${equipped ? '<div class="equipped-badge">已装备</div>' : ''}
+                    <div class="shop-preview" style="background:${item.preview}"></div>
+                    <div class="shop-name">${item.name}</div>
+                    ${btnHtml}
+                `;
+                grid.appendChild(card);
+            });
+        }
     }
 
     buySkin(id) {
@@ -526,6 +583,49 @@ class WordMatchGame {
         this.renderShop(item.type);
     }
 
+    buyCharacter(id) {
+        const ch = CHARACTERS.find(c => c.id === id);
+        if (!ch || this.unlockedCharacters.includes(id)) return;
+        if (this.score < ch.price) { this.showToast('积分不足!'); return; }
+        this.score -= ch.price;
+        this.unlockedCharacters.push(id);
+        this.equipCharacter(id);
+        this.showToast(`✨ 解锁角色: ${ch.name}`);
+        this.saveGlobal();
+        this.renderShop('character');
+    }
+
+    equipCharacter(id) {
+        if (!this.unlockedCharacters.includes(id)) return;
+        this.equippedCharacter = id;
+        this.renderCharacterBar();
+        this.saveGlobal();
+        this.renderShop('character');
+    }
+
+    buyItem(id) {
+        const it = CHARACTER_ITEMS.find(i => i.id === id);
+        if (!it) return;
+        if (this.unlockedSkins.includes(id) || this.equippedItem === id) return;
+        if (this.score < it.price) { this.showToast('积分不足!'); return; }
+        this.score -= it.price;
+        this.unlockedSkins.push(id);
+        this.equipItem(id);
+        this.showToast(`✨ 解锁道具: ${it.name}`);
+        this.saveGlobal();
+        this.renderShop('item');
+    }
+
+    equipItem(id) {
+        const it = CHARACTER_ITEMS.find(i => i.id === id);
+        if (!it) return;
+        if (!this.unlockedSkins.includes(id) && this.equippedItem !== id) return;
+        this.equippedItem = id;
+        this.renderCharacterBar();
+        this.saveGlobal();
+        this.renderShop('item');
+    }
+
     updateEquipBar() {
         const bar = document.getElementById('equipBar');
         if (!bar) return;
@@ -539,6 +639,38 @@ class WordMatchGame {
             <span class="equip-tag">✨ ${e ? e.name : '默认'}</span>
             <span class="equip-tag">🏅 ${f ? f.name : '无'}</span>
         `;
+    }
+
+    renderCharacterBar() {
+        const avatar = document.getElementById('characterAvatar');
+        const name = document.getElementById('characterName');
+        const buff = document.getElementById('characterBuff');
+        const slot = document.getElementById('characterItemSlot');
+        if (!avatar || !name || !buff) return;
+        const ch = CHARACTERS.find(c => c.id === this.equippedCharacter);
+        const it = CHARACTER_ITEMS.find(i => i.id === this.equippedItem);
+        if (ch) {
+            avatar.textContent = ch.emoji;
+            name.textContent = ch.name;
+            buff.textContent = ch.desc;
+        }
+        if (slot) {
+            if (it) { slot.textContent = it.emoji; slot.className = 'character-item-slot filled'; slot.title = it.name + ': ' + it.desc; }
+            else { slot.textContent = '+'; slot.className = 'character-item-slot'; slot.title = '道具槽（空）'; }
+        }
+    }
+
+    getEffect(type) {
+        const ch = CHARACTERS.find(c => c.id === this.equippedCharacter);
+        const it = CHARACTER_ITEMS.find(i => i.id === this.equippedItem);
+        let val = 0;
+        if (ch && ch.effect === type) val = ch.value;
+        if (it && it.effect === type) {
+            if (type === 'scoreBonus' || type === 'bombDiscount') val = val ? val * it.value : it.value;
+            else if (type === 'freeShuffle') val = true;
+            else val += it.value;
+        }
+        return val;
     }
 
     applyEquippedTheme() {
@@ -844,6 +976,7 @@ class WordMatchGame {
 
     startGame() {
         this.selectedTile = null; this.isProcessing = false;
+        this.renderCharacterBar();
         document.getElementById('modal').classList.remove('active');
 
         if (this.gameMode === 'story') {
@@ -853,7 +986,7 @@ class WordMatchGame {
             this.updateUI();
             this.startAutoHint();
         } else if (this.gameMode === 'timed') {
-            this.timeLeft = 60;
+            this.timeLeft = 60 + this.getEffect('timeBonus');
             this.loadRandomWord();
             this.generateBoard();
             this.renderBoard();
@@ -917,6 +1050,8 @@ class WordMatchGame {
         this.setCurrentTarget(0);
         const avgLen = this.targetWords.reduce((sum, w) => sum + w.en.length, 0) / this.targetWords.length;
         this.moves = Math.floor((avgLen * 4 + 12 + Math.floor(this.level / 2)) * 2.2);
+        const extra = this.getEffect('extraMoves');
+        if (extra) this.moves += extra;
         this.levelResetCount = 0;
         this.levelBombsUsed = 0;
         this.boardSize = this.level >= 15 ? 7 : 6;
@@ -1370,7 +1505,9 @@ class WordMatchGame {
             }
             if (collectedAny) this.sound.play('collect');
             this.sound.play('match');
-            const pts = matches.length * 10 * combo;
+            let pts = matches.length * 10 * combo;
+            const bonus = this.getEffect('scoreBonus');
+            if (bonus) pts = Math.floor(pts * bonus);
             this.score += pts;
 
             for (let m of matches) {
@@ -1691,8 +1828,9 @@ class WordMatchGame {
     shuffleBoard() {
         this.resetAutoHint();
         this.unlockAudio();
-        if (this.gameMode !== 'endless' && this.moves < 5 && !this.bombMode) return;
-        if (this.gameMode !== 'endless' && !this.bombMode) this.moves -= 5;
+        const free = this.getEffect('freeShuffle');
+        if (this.gameMode !== 'endless' && this.moves < 5 && !this.bombMode && !free) return;
+        if (this.gameMode !== 'endless' && !this.bombMode && !free) this.moves -= 5;
         this.clearHint();
         this.bombMode = false;
         this.bombSelected = [];
@@ -1804,7 +1942,10 @@ class WordMatchGame {
         const t1 = document.querySelector(`[data-r="${move.r1}"][data-c="${move.c1}"]`);
         const t2 = document.querySelector(`[data-r="${move.r2}"][data-c="${move.c2}"]`);
         if (t1 && t2) { t1.classList.add('hint'); t2.classList.add('hint'); }
-        this.hintCooldown = 10;
+        let cooldown = 10;
+        const reduction = this.getEffect('hintCooldown');
+        if (reduction) cooldown = Math.max(1, cooldown - Math.floor(reduction / 1000));
+        this.hintCooldown = cooldown;
         this.updateHintButton();
         const interval = setInterval(() => {
             this.hintCooldown--;
@@ -1854,12 +1995,13 @@ class WordMatchGame {
 
     scheduleAutoHint() {
         if (this.autoHintTimer) clearTimeout(this.autoHintTimer);
+        const delay = Math.max(3000, 10000 - this.getEffect('hintCooldown'));
         this.autoHintTimer = setTimeout(() => {
             if (!this.isProcessing && this.moves > 0 && this.hintCooldown <= 0 && !this.bombMode) {
                 this.showHint();
             }
             this.scheduleAutoHint();
-        }, 10000);
+        }, delay);
     }
 
     resetAutoHint() {
