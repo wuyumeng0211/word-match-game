@@ -976,16 +976,19 @@ class WordMatchGame {
 
     getLetterPool() {
         const target = [...new Set(this.targetWord.split(''))];
-        let extras = ['X', 'Y', 'Z'];
+        let extras = ['X', 'Y', 'Z', 'Q', 'J', 'V'];
         if (this.gameMode === 'story') {
-            if (this.level >= 6) extras.push('Q', 'J');
-            if (this.level >= 11) extras.push('V', 'K');
-            if (this.level >= 16) extras.push('W', 'F');
-            if (this.level >= 21) extras.push('H', 'M');
+            if (this.level >= 11) extras.push('K', 'W');
+            if (this.level >= 16) extras.push('F', 'H');
+            if (this.level >= 21) extras.push('M', 'P');
         } else if (this.gameMode === 'endless') {
-            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V'];
-            if (this.endlessDifficulty > 2) extras.push('K', 'W');
-            if (this.endlessDifficulty > 4) extras.push('F', 'H');
+            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W'];
+            if (this.endlessDifficulty > 2) extras.push('F', 'H');
+            if (this.endlessDifficulty > 4) extras.push('M', 'P');
+        } else if (this.gameMode === 'timed') {
+            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W', 'F', 'H'];
+        } else if (this.gameMode === 'review') {
+            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W'];
         }
         const pool = [...target];
         for (let e of extras) if (!target.includes(e)) pool.push(e);
@@ -1003,7 +1006,7 @@ class WordMatchGame {
     }
 
     generateBoard(attempts = 0) {
-        if (attempts > 50) {
+        if (attempts > 100) {
             console.warn('generateBoard: max attempts reached, forcing valid board');
         }
         const pool = this.getLetterPool();
@@ -1022,7 +1025,7 @@ class WordMatchGame {
             }
         }
         this.removeInitialMatches();
-        if (!this.hasAnyValidMove() && attempts <= 50) this.generateBoard(attempts + 1);
+        if (!this.hasAnyValidMove() && attempts <= 100) this.generateBoard(attempts + 1);
     }
 
     removeInitialMatches() {
@@ -1395,8 +1398,14 @@ class WordMatchGame {
             matches = this.findMatches();
         }
         if (matches.length === 0 && !this.hasAnyValidMove()) {
-            this.generateBoard();
+            let attempts = 0;
+            do {
+                this.autoShuffle();
+                attempts++;
+            } while (!this.hasAnyValidMove() && attempts < 30);
+            if (!this.hasAnyValidMove()) this.generateBoard();
             this.renderBoard();
+            this.showToast('🔀 棋盘已自动重排');
         }
         this.renderTarget();
         this.checkBombReward();
@@ -1693,6 +1702,26 @@ class WordMatchGame {
         this.renderBoard();
         this.updateUI();
         this.saveGlobal();
+    }
+
+    autoShuffle() {
+        const letters = [];
+        for (let r = 0; r < this.boardSize; r++) {
+            for (let c = 0; c < this.boardSize; c++) {
+                letters.push(this.board[r][c]);
+            }
+        }
+        for (let i = letters.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [letters[i], letters[j]] = [letters[j], letters[i]];
+        }
+        let idx = 0;
+        for (let r = 0; r < this.boardSize; r++) {
+            for (let c = 0; c < this.boardSize; c++) {
+                this.board[r][c] = letters[idx++];
+            }
+        }
+        this.removeInitialMatches();
     }
 
     updateUI() {
