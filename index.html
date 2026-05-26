@@ -473,6 +473,21 @@ const THEMES = [
     { name:'rainbow', bg:'linear-gradient(135deg,#f093fb 0%,#f5576c 100%)', primary:'linear-gradient(135deg,#667eea 0%,#764ba2 100%)', targetBg:'#f3e5f5', targetBorder:'#9c27b0', select:'#9c27b0', board:'#f3e5f5' }
 ];
 
+const LETTER_COLOR_PALETTE = [
+    { bg:'#2563eb', bg2:'#60a5fa', fg:'#ffffff', border:'#1d4ed8' },
+    { bg:'#f97316', bg2:'#fdba74', fg:'#ffffff', border:'#c2410c' },
+    { bg:'#16a34a', bg2:'#86efac', fg:'#ffffff', border:'#15803d' },
+    { bg:'#7c3aed', bg2:'#c4b5fd', fg:'#ffffff', border:'#6d28d9' },
+    { bg:'#ca8a04', bg2:'#fde047', fg:'#ffffff', border:'#a16207' },
+    { bg:'#0891b2', bg2:'#67e8f9', fg:'#ffffff', border:'#0e7490' },
+    { bg:'#e11d48', bg2:'#fb7185', fg:'#ffffff', border:'#be123c' },
+    { bg:'#4f46e5', bg2:'#a5b4fc', fg:'#ffffff', border:'#4338ca' },
+    { bg:'#0f766e', bg2:'#5eead4', fg:'#ffffff', border:'#115e59' },
+    { bg:'#92400e', bg2:'#fbbf24', fg:'#ffffff', border:'#78350f' },
+    { bg:'#65a30d', bg2:'#bef264', fg:'#ffffff', border:'#4d7c0f' },
+    { bg:'#c026d3', bg2:'#f0abfc', fg:'#ffffff', border:'#a21caf' }
+];
+
 const ACHIEVEMENTS = [
     { id:'first_word', name:'初出茅庐', desc:'成功拼出第一个单词', icon:'✨' },
     { id:'zero_bomb', name:'零炸弹通关', desc:'不使用炸弹完成一关', icon:'🎯' },
@@ -615,6 +630,7 @@ class WordMatchGame {
         this.toolInventory = {};
         this.reviewBoostActive = false;
         this.deferredInstallPrompt = null;
+        this.letterColorMap = {};
 
         this.wordLevels = [
             [{en:'CAT',cn:'猫',s:'I have a cute cat.',sc:'我有一只可爱的猫。'},{en:'DOG',cn:'狗',s:'The dog likes to run.',sc:'这只狗喜欢奔跑。'},{en:'SUN',cn:'太阳',s:'The sun is shining today.',sc:'今天阳光明媚。'},{en:'HAT',cn:'帽子',s:'She wears a red hat.',sc:'她戴着一顶红色的帽子。'},{en:'BED',cn:'床',s:'I go to bed at nine.',sc:'我九点钟上床睡觉。'},{en:'RED',cn:'红色',s:'My favorite color is red.',sc:'我最喜欢的颜色是红色。'},{en:'BIG',cn:'大的',s:'The elephant is very big.',sc:'这头大象非常大。'},{en:'RUN',cn:'奔跑',s:'I run every morning.',sc:'我每天早上跑步。'},{en:'FUN',cn:'乐趣',s:'We have fun at school.',sc:'我们在学校玩得很开心。'},{en:'PEN',cn:'钢笔',s:'I write with a pen.',sc:'我用钢笔写字。'}],
@@ -773,6 +789,39 @@ class WordMatchGame {
             picked.push(arr.splice(idx, 1)[0]);
         }
         return picked;
+    }
+
+    shufflePalette(seedText) {
+        const palette = [...LETTER_COLOR_PALETTE];
+        let seed = this.hashString(seedText || 'word-match');
+        for (let i = palette.length - 1; i > 0; i--) {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            const j = seed % (i + 1);
+            [palette[i], palette[j]] = [palette[j], palette[i]];
+        }
+        return palette;
+    }
+
+    buildLetterColorMap() {
+        const letters = [...new Set(this.getLetterPool())].sort();
+        const targetSet = new Set(this.targetWord.split(''));
+        const ordered = [
+            ...letters.filter(ch => targetSet.has(ch)),
+            ...letters.filter(ch => !targetSet.has(ch))
+        ];
+        const palette = this.shufflePalette(`${this.gameMode}-${this.level}-${this.targetWord}-${ordered.join('')}`);
+        this.letterColorMap = {};
+        ordered.forEach((letter, index) => {
+            this.letterColorMap[letter] = palette[index % palette.length];
+        });
+    }
+
+    applyTileColor(tile, letter) {
+        const color = this.letterColorMap[letter] || LETTER_COLOR_PALETTE[0];
+        tile.style.setProperty('background', `linear-gradient(135deg, ${color.bg} 0%, ${color.bg2} 100%)`, 'important');
+        tile.style.color = color.fg;
+        tile.style.border = `2px solid ${color.border}`;
+        tile.style.textShadow = '0 1px 2px rgba(0,0,0,0.28)';
     }
 
     markPlayDay() {
@@ -1220,6 +1269,7 @@ class WordMatchGame {
         for (let ch of this.targetWord) this.collectedLetters[ch] = 0;
         this.bombMode = false;
         this.bombSelected = [];
+        this.letterColorMap = {};
     }
 
     loadRandomWord() {
@@ -1241,6 +1291,7 @@ class WordMatchGame {
         this.moves = 999;
         this.bombMode = false;
         this.bombSelected = [];
+        this.letterColorMap = {};
     }
 
     loadReviewWord() {
@@ -1325,6 +1376,7 @@ class WordMatchGame {
         }
         this.removeInitialMatches();
         if (!this.hasAnyValidMove()) this.generateBoard();
+        this.buildLetterColorMap();
     }
 
     removeInitialMatches() {
@@ -1397,12 +1449,14 @@ class WordMatchGame {
                 if (tile) {
                     if (tile.textContent !== letter) tile.textContent = letter;
                     if (tile.className !== fullClass) tile.className = fullClass;
+                    this.applyTileColor(tile, letter);
                     delete existing[key];
                 } else {
                     tile = document.createElement('div');
                     tile.className = fullClass;
                     tile.textContent = letter;
                     tile.dataset.r = r; tile.dataset.c = c;
+                    this.applyTileColor(tile, letter);
                     el.appendChild(tile);
                 }
             }
@@ -1686,6 +1740,7 @@ class WordMatchGame {
                 wr--;
             }
         }
+        this.buildLetterColorMap();
     }
 
     isWin() {
