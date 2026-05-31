@@ -739,6 +739,7 @@ class WordMatchGame {
         this.bestTimedWords = 0;
         this.bestEndlessWords = 0;
         this.dailyDate = '';
+        this.lastDailyReward = 0;
         this.wordMastery = {};
         this.toolInventory = {};
         this.reviewBoostActive = false;
@@ -2192,8 +2193,11 @@ class WordMatchGame {
                     setTimeout(() => this.showModal('win'), 400);
                 }
             } else if (this.gameMode === 'timed') {
+                this.endlessWords++;
+                if (this.endlessWords > this.bestTimedWords) this.bestTimedWords = this.endlessWords;
                 this.score += 100 + this.targetWord.length * 50;
                 this.checkBombReward();
+                this.saveGlobal();
                 this.updateTimedUI();
                 this.sound.play('win');
                 this.sound.speak(this.targetWord + '. ' + this.targetSentence);
@@ -2247,7 +2251,8 @@ class WordMatchGame {
                     const today = this.dailyDate || this.getDateKey();
                     const firstTime = !this.dailyCompletions[today];
                     this.dailyCompletions[today] = true;
-                    this.score += firstTime ? 800 : 200;
+                    this.lastDailyReward = firstTime ? 800 : 200;
+                    this.score += this.lastDailyReward;
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
@@ -2378,9 +2383,9 @@ class WordMatchGame {
                 btn.onclick = () => { this.closeModal(); this.startGame(); };
             } else if (this.gameMode === 'daily') {
                 title.textContent = '今日挑战完成!';
-                text.textContent = this.dailyCompletions[this.dailyDate]
-                    ? '你完成了今天的3个单词，奖励积分已到账。'
-                    : '你完成了今天的3个单词。';
+                text.textContent = this.lastDailyReward === 800
+                    ? '首次完成今天的3个单词，获得 800 分奖励。'
+                    : '再次完成今天的3个单词，获得 200 分奖励。';
                 btn.textContent = '返回首页';
                 btn.onclick = () => { this.closeModal(); this.backToMenu(); };
             }
@@ -2830,7 +2835,13 @@ class WordMatchGame {
 
         ctx.font = 'bold 28px sans-serif';
         ctx.fillStyle = '#ffd700';
-        const modeText = this.gameMode === 'story' ? `第 ${this.level} 关` : this.gameMode === 'timed' ? '限时挑战' : '无尽模式';
+        const modeText = {
+            story: `第 ${this.level} 关`,
+            timed: '限时挑战',
+            endless: '无尽模式',
+            review: '单词复习',
+            daily: '每日挑战'
+        }[this.gameMode] || '单词拼拼消';
         ctx.fillText(`${modeText} · 得分 ${this.score}`, w / 2, 340);
 
         const link = document.createElement('a');

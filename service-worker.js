@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-match-game-v10';
+const CACHE_NAME = 'word-match-game-v11';
 const ASSETS = [
   './',
   './index.html',
