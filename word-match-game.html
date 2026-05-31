@@ -163,8 +163,17 @@
         .sentence-box { background: #e8f4fd; border-left: 4px solid #2196F3; padding: 10px 14px; border-radius: 8px; margin: 10px 0; text-align: left; font-size: 14px; color: #333; }
         .sentence-box .en { font-weight: 600; margin-bottom: 4px; }
         .sentence-box .cn { color: #666; font-size: 13px; }
+        .learning-highlight { animation: learningGlow 1.25s ease; }
+        @keyframes learningGlow {
+            0% { transform: scale(.98); box-shadow: 0 0 0 rgba(33,150,243,0); }
+            45% { transform: scale(1.025); box-shadow: 0 0 0 5px rgba(33,150,243,.14); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(33,150,243,0); }
+        }
+        .modal-title.learning-highlight { color: #11998e; border-radius: 8px; }
         .combo-indicator { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 28px; font-weight: 800; color: #e74c3c; pointer-events: none; z-index: 50; animation: comboPop 0.8s ease forwards; }
         @keyframes comboPop { 0%{transform:translate(-50%,-50%) scale(0)} 50%{transform:translate(-50%,-50%) scale(1.3)} 100%{transform:translate(-50%,-50%) scale(1);opacity:0} }
+        .game-board.combo-shake { animation: comboShake 0.28s ease; }
+        @keyframes comboShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
         .save-indicator { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; opacity: 0; transition: opacity 0.3s; z-index: 200; }
         .save-indicator.show { opacity: 1; }
         .score-popup { position: absolute; font-size: 18px; font-weight: 700; color: #e74c3c; pointer-events: none; animation: scoreFloat 1s ease forwards; z-index: 50; }
@@ -243,7 +252,13 @@
         .shop-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .shop-card.owned { background: #e8f5e9; border: 2px solid #4caf50; }
         .shop-card.equipped { background: #fff3cd; border: 2px solid #ffc107; }
-        .shop-preview { width: 100%; height: 48px; border-radius: 8px; margin-bottom: 6px; }
+        .shop-preview { width: 100%; height: 54px; border-radius: 8px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .shop-mini-board { display: grid; grid-template-columns: repeat(3, 14px); gap: 3px; padding: 5px; border-radius: 7px; background: rgba(255,255,255,.76); box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+        .shop-mini-tile { width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: white; font-size: 8px; font-weight: 800; line-height: 1; }
+        .shop-mini-tile.pixel { border-radius: 1px; box-shadow: 1px 1px 0 rgba(0,0,0,.3); }
+        .shop-mini-tile.metal { border-radius: 3px; border: 1px solid #8899a6; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); }
+        .shop-mini-tile.ink { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+        .shop-mini-tile.crystal { opacity: .76; border: 1px solid rgba(255,255,255,.8); }
         .shop-name { font-size: 11px; font-weight: 600; color: #333; margin-bottom: 4px; }
         .shop-desc { font-size: 10px; color: #777; line-height: 1.35; min-height: 28px; margin-bottom: 4px; }
         .shop-price { font-size: 11px; color: #e74c3c; font-weight: 700; }
@@ -256,6 +271,10 @@
         .shop-score { text-align: center; font-size: 14px; font-weight: 700; color: #667eea; margin-bottom: 10px; }
         .equip-bar { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-top: 8px; font-size: 11px; color: #666; }
         .equip-tag { background: #f8f9fa; padding: 4px 8px; border-radius: 8px; }
+        .accessibility-settings { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+        .setting-toggle { display: flex; align-items: center; gap: 5px; background: #f8f9fa; border: 1px solid #e5e7eb; border-radius: 999px; padding: 5px 9px; color: #666; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .setting-toggle input { accent-color: #667eea; }
+        body.reduce-motion *, body.reduce-motion *::before, body.reduce-motion *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         .frame-bronze { border: 3px solid #cd7f32; box-shadow: 0 0 8px rgba(205,127,50,0.4); }
         .frame-silver { border: 3px solid #c0c0c0; box-shadow: 0 0 12px rgba(192,192,192,0.5); }
         .frame-gold { border: 3px solid #ffd700; box-shadow: 0 0 16px rgba(255,215,0,0.6); }
@@ -267,6 +286,13 @@
         @media (max-width: 400px) {
             .game-container { padding: 12px; border-radius: 16px; }
             .game-title { font-size: 22px; }
+            body.in-game .game-header { margin-bottom: 6px; }
+            body.in-game .game-title { font-size: 18px; line-height: 1.1; }
+            body.in-game .game-subtitle { display: none; }
+            body.in-game .level-info { padding: 6px 8px; margin-bottom: 7px; }
+            body.in-game .info-label { font-size: 9px; }
+            body.in-game .info-value { font-size: 17px; }
+            body.in-game .target-word-section { padding: 9px 10px; margin-bottom: 7px; }
             .letter-slot { width: 34px; height: 34px; font-size: 16px; }
             .tile { font-size: 16px; }
             .btn { padding: 6px 10px; font-size: 12px; }
@@ -329,6 +355,10 @@
                 <button class="btn btn-primary" data-action="install" style="padding:6px 10px">安装</button>
             </div>
             <div class="equip-bar" id="equipBar" style="margin-top:8px"></div>
+            <div class="accessibility-settings">
+                <label class="setting-toggle"><input type="checkbox" id="reduceMotionToggle"> 减少动效</label>
+                <label class="setting-toggle"><input type="checkbox" id="colorBlindToggle"> 色弱辅助纹理</label>
+            </div>
             <div class="level-map-section" id="levelMapSection" style="margin-top:16px">
                 <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px">🗺️ 冒险地图</div>
                 <div class="level-map" id="levelMap"></div>
@@ -669,6 +699,8 @@ class WordMatchGame {
         this.wordMastery = {};
         this.toolInventory = {};
         this.reviewBoostActive = false;
+        this.reduceMotion = false;
+        this.colorBlindMode = false;
         this.deferredInstallPrompt = null;
         this.letterColorMap = {};
 
@@ -732,6 +764,8 @@ class WordMatchGame {
                 this.wordMastery = data.wordMastery || {};
                 this.toolInventory = data.toolInventory || {};
                 this.reviewBoostActive = !!data.reviewBoostActive;
+                this.reduceMotion = !!data.reduceMotion;
+                this.colorBlindMode = !!data.colorBlindMode;
                 if (data.speakEnabled !== undefined) this.sound.speakEnabled = data.speakEnabled;
                 if (version < 2) {
                     this.nextBombAt = Math.max(this.nextBombAt, 8000);
@@ -764,6 +798,8 @@ class WordMatchGame {
             wordMastery: this.wordMastery,
             toolInventory: this.toolInventory,
             reviewBoostActive: this.reviewBoostActive,
+            reduceMotion: this.reduceMotion,
+            colorBlindMode: this.colorBlindMode,
             speakEnabled: this.sound.speakEnabled,
             date: Date.now()
         };
@@ -905,7 +941,9 @@ class WordMatchGame {
     applyTileColor(tile, letter) {
         const color = this.letterColorMap[letter] || LETTER_COLOR_PALETTE[0];
         const gradient = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg2} 100%)`;
-        const background = color.pattern ? `${color.pattern}, ${gradient}` : gradient;
+        const fallbackPattern = LETTER_PATTERNS[(Math.max(0, letter.charCodeAt(0) - 65) % (LETTER_PATTERNS.length - 1)) + 1];
+        const pattern = this.colorBlindMode ? fallbackPattern : color.pattern;
+        const background = pattern ? `${pattern}, ${gradient}` : gradient;
         tile.style.setProperty('background', background, 'important');
         tile.style.color = color.fg;
         tile.style.border = `2px solid ${color.border}`;
@@ -946,6 +984,7 @@ class WordMatchGame {
         this.updateEquipBar();
         this.updateToolUI();
         this.applyEquippedTheme();
+        this.applyAccessibilitySettings();
         this.setupPWA();
         const ttsBtn = document.getElementById('ttsBtn');
         if (ttsBtn) {
@@ -984,6 +1023,17 @@ class WordMatchGame {
         });
         const installBtn = document.querySelector('[data-action="install"]');
         if (installBtn) installBtn.addEventListener('click', () => this.installApp());
+        document.getElementById('reduceMotionToggle').addEventListener('change', (event) => {
+            this.reduceMotion = event.target.checked;
+            this.applyAccessibilitySettings();
+            this.saveGlobal();
+        });
+        document.getElementById('colorBlindToggle').addEventListener('change', (event) => {
+            this.colorBlindMode = event.target.checked;
+            this.applyAccessibilitySettings();
+            if (this.board.length) this.renderBoard();
+            this.saveGlobal();
+        });
 
         document.getElementById('tutorialBtn').addEventListener('click', () => this.nextTutorialStep());
         document.querySelectorAll('[data-shop-tab]').forEach(tab => {
@@ -1019,6 +1069,12 @@ class WordMatchGame {
             const card = document.getElementById('installCard');
             if (card) card.classList.add('show');
         }
+    }
+
+    applyAccessibilitySettings() {
+        document.body.classList.toggle('reduce-motion', this.reduceMotion);
+        document.getElementById('reduceMotionToggle').checked = this.reduceMotion;
+        document.getElementById('colorBlindToggle').checked = this.colorBlindMode;
     }
 
     async installApp() {
@@ -1076,13 +1132,30 @@ class WordMatchGame {
             }
             card.innerHTML = `
                 ${equipped ? '<div class="equipped-badge">已装备</div>' : ''}
-                <div class="shop-preview" style="background:${item.preview}"></div>
+                ${this.getShopPreviewHTML(item)}
                 <div class="shop-name">${item.name}</div>
                 ${item.desc ? `<div class="shop-desc">${item.desc}</div>` : ''}
                 ${btnHtml}
             `;
             grid.appendChild(card);
         });
+    }
+
+    getShopPreviewHTML(item) {
+        const sampleColors = ['#005ab5','#009e73','#d81b60','#ff7f00','#7055c7','#00838f'];
+        const letters = ['A','B','C','A','C','B'];
+        let tileClass = '';
+        if (item.id === 'pixel_board') tileClass = ' pixel';
+        else if (item.id === 'metal_board') tileClass = ' metal';
+        else if (item.id === 'ink_board') tileClass = ' ink';
+        else if (item.id === 'crystal_board') tileClass = ' crystal';
+        const miniTiles = letters.map((letter, index) =>
+            `<span class="shop-mini-tile${tileClass}" style="background:${sampleColors[index]}">${letter}</span>`
+        ).join('');
+        const boardBg = item.colors?.board || item.preview;
+        return `<div class="shop-preview" style="background:${item.preview}">
+            <div class="shop-mini-board" style="background:${boardBg}">${miniTiles}</div>
+        </div>`;
     }
 
     buyTool(id) {
@@ -1251,6 +1324,7 @@ class WordMatchGame {
         this.markPlayDay();
         this.saveGlobal();
         this.gameMode = mode;
+        document.body.classList.add('in-game');
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('gameScreen').style.display = 'block';
         this.startGame();
@@ -1265,6 +1339,7 @@ class WordMatchGame {
         document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'block';
+        document.body.classList.remove('in-game');
         this.updateGlobalStats();
         this.updateEquipBar();
     }
@@ -1703,6 +1778,7 @@ class WordMatchGame {
     }
 
     spawnParticles(x, y, color) {
+        if (this.reduceMotion) return;
         const container = document.getElementById('boardContainer');
         const effect = this.equippedEffect;
         const count = effect === 'rainbow_effect' ? 12 : 8;
@@ -1763,6 +1839,7 @@ class WordMatchGame {
     }
 
     flyLetterToTarget(r, c, letter, occurrence) {
+        if (this.reduceMotion) return;
         const tile = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
         const slot = document.querySelector(`.letter-slot[data-letter="${letter}"][data-occurrence="${occurrence}"]`);
         if (!tile || !slot) return;
@@ -1823,9 +1900,16 @@ class WordMatchGame {
             if (combo > 1) {
                 const el = document.createElement('div');
                 el.className = 'combo-indicator';
-                el.textContent = combo + ' COMBO!';
+                el.textContent = `Combo ×${combo}`;
                 document.getElementById('gameBoard').appendChild(el);
                 setTimeout(() => el.remove(), 800);
+                if (!this.reduceMotion) {
+                    const board = document.getElementById('gameBoard');
+                    board.classList.remove('combo-shake');
+                    void board.offsetWidth;
+                    board.classList.add('combo-shake');
+                    setTimeout(() => board.classList.remove('combo-shake'), 280);
+                }
             }
             await new Promise(r => setTimeout(r, 400));
             this.removeAndFill(matches);
@@ -2009,11 +2093,16 @@ class WordMatchGame {
         const sentenceBox = document.getElementById('sentenceBox');
 
         icon.textContent = '✅';
-        title.textContent = `单词 ${this.currentWordIndex + 1}/${this.targetWords.length} 完成!`;
-        text.textContent = `你成功拼出了 "${this.targetWord}" (${this.targetChinese})!\n准备挑战下一个单词`;
+        title.textContent = `${this.targetWord} · ${this.targetChinese}`;
+        text.textContent = `单词 ${this.currentWordIndex + 1}/${this.targetWords.length} 完成，听一遍例句再继续。`;
         document.getElementById('sentenceEn').textContent = this.targetSentence;
         document.getElementById('sentenceCn').textContent = this.targetSentenceCn;
         sentenceBox.style.display = 'block';
+        title.classList.remove('learning-highlight');
+        sentenceBox.classList.remove('learning-highlight');
+        void sentenceBox.offsetWidth;
+        title.classList.add('learning-highlight');
+        sentenceBox.classList.add('learning-highlight');
         document.getElementById('modalShareBtn').style.display = 'none';
 
         btn.textContent = '下一个单词';
@@ -2040,6 +2129,8 @@ class WordMatchGame {
         const sentenceBox = document.getElementById('sentenceBox');
         const actions = document.getElementById('modalActions');
         sentenceBox.classList.remove('failure-card');
+        sentenceBox.classList.remove('learning-highlight');
+        title.classList.remove('learning-highlight');
         document.getElementById('modalShareBtn').textContent = '📤 分享';
         document.getElementById('modalShareBtn').onclick = () => this.generateShareImage();
 
