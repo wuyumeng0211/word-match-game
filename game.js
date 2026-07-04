@@ -9,6 +9,42 @@ const THEMES = [
     { name:'rainbow', bg:'linear-gradient(135deg,#f093fb 0%,#f5576c 100%)', primary:'linear-gradient(135deg,#667eea 0%,#764ba2 100%)', targetBg:'#f3e5f5', targetBorder:'#9c27b0', select:'#9c27b0', board:'#f3e5f5' }
 ];
 
+const LETTER_COLOR_PALETTE = [
+    { bg:'#005ab5', bg2:'#3f8fd8', fg:'#ffffff', border:'#003f80' },
+    { bg:'#009e73', bg2:'#42c69e', fg:'#ffffff', border:'#006f51' },
+    { bg:'#d81b60', bg2:'#ec6793', fg:'#ffffff', border:'#a50f45' },
+    { bg:'#000000', bg2:'#4b5563', fg:'#ffffff', border:'#000000' },
+    { bg:'#ff7f00', bg2:'#ffb24d', fg:'#ffffff', border:'#b85c00' },
+    { bg:'#ffff33', bg2:'#fff98a', fg:'#3f3f00', border:'#b5ad00' },
+    { bg:'#0067b9', bg2:'#3b9ae1', fg:'#ffffff', border:'#004d8a' },
+    { bg:'#e87500', bg2:'#f7ad45', fg:'#ffffff', border:'#a94f00' },
+    { bg:'#008f5a', bg2:'#40c98c', fg:'#ffffff', border:'#006b43' },
+    { bg:'#c43c8c', bg2:'#e47db6', fg:'#ffffff', border:'#92286a' },
+    { bg:'#b73a18', bg2:'#e97955', fg:'#ffffff', border:'#842610' },
+    { bg:'#7055c7', bg2:'#a18ae9', fg:'#ffffff', border:'#503b99' },
+    { bg:'#9b6b00', bg2:'#d8a82f', fg:'#ffffff', border:'#704d00' },
+    { bg:'#00838f', bg2:'#42bdc4', fg:'#ffffff', border:'#005e66' },
+    { bg:'#5e7314', bg2:'#9bac50', fg:'#ffffff', border:'#43520e' },
+    { bg:'#7b4a2d', bg2:'#b57b55', fg:'#ffffff', border:'#58331e' },
+    { bg:'#343a70', bg2:'#6870b5', fg:'#ffffff', border:'#252a52' },
+    { bg:'#8f2c21', bg2:'#c9685d', fg:'#ffffff', border:'#661e17' },
+    { bg:'#334155', bg2:'#718096', fg:'#ffffff', border:'#1f2937' },
+    { bg:'#a54800', bg2:'#d97d37', fg:'#ffffff', border:'#753300' },
+    { bg:'#506b00', bg2:'#8cab36', fg:'#ffffff', border:'#384c00' },
+    { bg:'#156b78', bg2:'#58aab5', fg:'#ffffff', border:'#0e4c56' }
+];
+
+const CORE_LETTER_COLORS = LETTER_COLOR_PALETTE.slice(0, 6);
+
+const LETTER_PATTERNS = [
+    '',
+    'repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 4px, transparent 4px 12px)',
+    'repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 3px, transparent 3px 11px)',
+    'radial-gradient(circle at 22% 24%, rgba(255,255,255,.22) 0 3px, transparent 3px)',
+    'repeating-linear-gradient(90deg, rgba(255,255,255,.13) 0 3px, transparent 3px 12px)',
+    'repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 2px, transparent 2px 9px)'
+];
+
 const ACHIEVEMENTS = [
     { id:'first_word', name:'初出茅庐', desc:'成功拼出第一个单词', icon:'✨' },
     { id:'zero_bomb', name:'零炸弹通关', desc:'不使用炸弹完成一关', icon:'🎯' },
@@ -38,50 +74,132 @@ const SHOP_ITEMS = [
     { id:'default_frame', name:'无框', type:'frame', price:0, preview:'#e9ecef' },
     { id:'bronze_frame', name:'青铜学者', type:'frame', price:3000, preview:'#cd7f32' },
     { id:'silver_frame', name:'白银探知者', type:'frame', price:6000, preview:'#c0c0c0' },
-    { id:'gold_frame', name:'黄金词汇王', type:'frame', price:10000, preview:'#ffd700' }
+    { id:'gold_frame', name:'黄金词汇王', type:'frame', price:10000, preview:'#ffd700' },
+    { id:'first_hint', name:'首字母提示', type:'tool', price:600, preview:'#fde68a', desc:'高亮下一个还没收集够的字母' },
+    { id:'definition_card', name:'释义扩展卡', type:'tool', price:900, preview:'#bfdbfe', desc:'查看单词词义、例句和掌握度' },
+    { id:'sentence_card', name:'例句拆解卡', type:'tool', price:900, preview:'#bbf7d0', desc:'显示例句中文翻译并自动朗读' },
+    { id:'retry_card', name:'错词复活卡', type:'tool', price:1600, preview:'#fecaca', desc:'失败后保留当前单词进度重试' },
+    { id:'review_boost', name:'复习加倍卡', type:'tool', price:2200, preview:'#ddd6fe', desc:'下一次复习完成奖励翻倍' }
 ];
 
-const CHARACTERS = [
-    { id:'dino', name:'像素龙', emoji:'🦖', price:0, desc:'每局额外1步', effect:'extraMoves', value:1 },
-    { id:'mecha', name:'机甲兵', emoji:'🤖', price:3000, desc:'炸弹充能快15%', effect:'bombDiscount', value:0.85 },
-    { id:'princess', name:'甜心公主', emoji:'👸', price:5000, desc:'提示冷却-1秒', effect:'hintCooldown', value:1000 },
-    { id:'wizard', name:'大法师', emoji:'🧙‍♂️', price:6000, desc:'消除得分+15%', effect:'scoreBonus', value:1.15 },
-    { id:'ninja', name:'暗影忍', emoji:'🥷', price:4000, desc:'刷新棋盘不扣步', effect:'freeShuffle', value:true },
-    { id:'astronaut', name:'宇航员', emoji:'👨‍🚀', price:7000, desc:'限时模式+10秒', effect:'timeBonus', value:10 }
+const COMPANIONS = [
+    { id:'dino', name:'背包小恐龙', price:0, image:'assets/companions/dino.png', item:'dino_snack', itemName:'能量果干' },
+    { id:'mecha', name:'苍蓝机甲', price:5200, image:'assets/companions/mecha.png', item:'mecha_cell', itemName:'护盾电池' },
+    { id:'princess', name:'星愿公主', price:5200, image:'assets/companions/princess.png', item:'princess_wand', itemName:'星光糖果' }
 ];
 
-const CHARACTER_ITEMS = [
-    { id:'clover', name:'幸运草', emoji:'🍀', price:1500, desc:'额外+1步', effect:'extraMoves', value:1 },
-    { id:'battery', name:'能量块', emoji:'🔋', price:1500, desc:'炸弹充能再快10%', effect:'bombDiscount', value:0.90 },
-    { id:'glasses', name:'透镜', emoji:'🔍', price:1500, desc:'提示冷却再-0.5秒', effect:'hintCooldown', value:500 },
-    { id:'gem', name:'红宝石', emoji:'💎', price:2000, desc:'得分再+8%', effect:'scoreBonus', value:1.08 },
-    { id:'clock', name:'怀表', emoji:'⏱️', price:1500, desc:'限时模式再+5秒', effect:'timeBonus', value:5 }
+const COMPANION_ITEMS = [
+    { id:'dino_snack', companion:'dino', name:'能量果干', price:900, icon:'🍎' },
+    { id:'mecha_cell', companion:'mecha', name:'护盾电池', price:1200, icon:'🔋' },
+    { id:'princess_wand', companion:'princess', name:'星光糖果', price:1100, icon:'⭐' }
 ];
+
+const COMPANION_DEFAULT_NAMES = { dino:'阿啦', mecha:'小蓝', princess:'星儿' };
+const COMPANION_LINES = {
+  dino: { // 阿啦：活泼好奇的小恐龙，像兴奋的小朋友，口语化、爱感叹
+    idle: [
+      {en:"Rawr! Let's learn together!", zh:"吼！我们一起学习吧！"},
+      {en:"Yay, you're back! I missed you!", zh:"耶，你回来啦！我好想你！"},
+      {en:"New words are so yummy to me!", zh:"新单词对我来说超好吃的！"}
+    ],
+    win: [
+      {en:"Wow! You're super duper strong!", zh:"哇！你超级超级厉害！"},
+      {en:"We did it! High five!", zh:"我们做到啦！击个掌！"},
+      {en:"Rawr! That was awesome!", zh:"吼！太棒啦！"}
+    ],
+    evolve: [
+      {en:"I'm growing bigger! Thank you!", zh:"我长大啦！谢谢你！"},
+      {en:"Rawr-some! I feel so strong now!", zh:"吼——我现在感觉好强大！"}
+    ],
+    daily: [
+      {en:"{days} days together! So happy!", zh:"在一起{days}天啦！好开心！"},
+      {en:"You came back for {days} days! Yay!", zh:"你连续来了{days}天！耶！"}
+    ],
+    miss: [
+      {en:"I waited so long... I missed you!", zh:"我等了好久…好想你！"},
+      {en:"You're here! Don't go away again!", zh:"你来啦！别再走开了嘛！"}
+    ]
+  },
+  mecha: { // 小蓝：机甲机器人，精准、科技感、报告式口吻，称呼 Captain
+    idle: [
+      {en:"Systems online. Ready for action!", zh:"系统在线，准备就绪！"},
+      {en:"Learning module activated, Captain.", zh:"学习模块已激活，队长。"},
+      {en:"Scanning for new words... ready!", zh:"正在扫描新单词…准备完毕！"}
+    ],
+    win: [
+      {en:"Mission complete. Outstanding work!", zh:"任务完成，表现出色！"},
+      {en:"Victory confirmed. Shields at full!", zh:"胜利确认，护盾全开！"},
+      {en:"Performance: excellent. Well done!", zh:"性能评估：优秀。干得好！"}
+    ],
+    evolve: [
+      {en:"Core upgrade complete. Powering up!", zh:"核心升级完成，能量提升！"},
+      {en:"Evolution sequence finished. Stronger now!", zh:"进化程序完成，更强了！"}
+    ],
+    daily: [
+      {en:"{days} days of loyalty logged. Impressive!", zh:"已记录{days}天忠诚登录，了不起！"},
+      {en:"Streak: {days} days. Discipline confirmed!", zh:"连续{days}天，纪律性确认！"}
+    ],
+    miss: [
+      {en:"Signal restored. I was on standby.", zh:"信号恢复，我一直在待机。"},
+      {en:"Reconnection successful. Welcome back, Captain.", zh:"重新连接成功，欢迎回来，队长。"}
+    ]
+  },
+  princess: { // 星儿：温柔优雅的星星公主，鼓励式、有礼貌、梦幻
+    idle: [
+      {en:"You shine so brightly today!", zh:"你今天闪闪发光呢！"},
+      {en:"Let's spell something wonderful!", zh:"我们来拼出美妙的单词吧！"},
+      {en:"I believe in you, always.", zh:"我永远相信你。"}
+    ],
+    win: [
+      {en:"Gracefully done, my dear friend!", zh:"完成得真优雅，我亲爱的朋友！"},
+      {en:"Simply magical! You were wonderful.", zh:"简直像魔法！你太棒了。"},
+      {en:"Another star earned. Beautiful!", zh:"又赢得一颗星，真美！"}
+    ],
+    evolve: [
+      {en:"My magic awakens. Thank you, dear!", zh:"我的魔法觉醒了，谢谢你！"},
+      {en:"I sparkle brighter now, thanks to you!", zh:"因为有你，我闪得更亮了！"}
+    ],
+    daily: [
+      {en:"{days} days by your side. So grateful!", zh:"陪你{days}天啦，好感激！"},
+      {en:"Our {days}-day promise, I remember it.", zh:"我们{days}天的约定，我都记得。"}
+    ],
+    miss: [
+      {en:"I felt lonely without you...", zh:"没有你，我有点寂寞…"},
+      {en:"You're back at last. I missed you.", zh:"你终于回来啦，我好想你。"}
+    ]
+  }
+};
+
+const COMPANION_VOICE = {
+  dino:     { pitch: 1.6,  rate: 1.05, gender: 'female', prefer: ['samantha','google us english','zira','ava','allison'] }, // 高、活泼（女童声）
+  mecha:    { pitch: 0.5,  rate: 0.92, gender: 'male',   prefer: ['daniel','alex','fred','google uk english male','david','mark','rishi','aaron','tom'] }, // 低沉机械（男声）
+  princess: { pitch: 1.15, rate: 0.9,  gender: 'female', prefer: ['karen','victoria','serena','google uk english female','tessa','moira','samantha'] } // 柔和（女声）
+};
+// 浏览器多数不提供 voice.gender，靠音色名推断性别（裸 male/female 关键字无意义，故只放具体名）
+const VOICE_GENDER_HINTS = {
+  male:   ['daniel','alex','fred','aaron','tom','reed','rishi','oliver','gordon','lee','david','mark','george','james','ravi','guy','arthur','eddy male','reed male','rocko male'],
+  female: ['samantha','karen','victoria','tessa','moira','fiona','allison','ava','susan','zoe','kate','serena','zira','hazel','catherine','google us english','eddy female','flo female']
+};
 
 const TUTORIAL_STEPS = [
     { icon:'🎮', title:'欢迎来到单词拼拼消', text:'这是一款将英语单词学习和消消乐结合的游戏。每一关你需要拼出3个单词，从3字母逐步挑战到10字母！' },
     { icon:'📖', title:'收集字母拼出单词', text:'点击棋盘上两个相邻的字母进行交换。连成3个或以上相同的字母即可消除，并收集该字母到目标单词中。' },
     { icon:'💡', title:'提示帮你找到方向', text:'遇到困难时点击"提示"按钮，系统会高亮显示可以交换的两个字母。提示有5秒冷却时间。' },
-    { icon:'💣', title:'炸弹直接消除', text:'每积攒5000分可获得一枚字母炸弹。进入炸弹模式后，点击棋盘上任意3个字母即可直接消除它们！' },
+    { icon:'💣', title:'炸弹直接消除', text:'每积攒8000分可获得一枚字母炸弹。进入炸弹模式后，点击棋盘上任意3个字母即可直接消除它们！' },
     { icon:'🏆', title:'准备好了吗？', text:'通关后你会看到单词的英文例句和中文翻译，还能收藏到单词本中随时复习。开始你的单词之旅吧！' }
 ];
 
 class SoundManager {
-    constructor() { this.enabled = true; this.speakEnabled = true; this.ctx = null; this.preferredVoice = null; this.voiceReady = false; this._resumeTimer = null; }
+    constructor() { this.enabled = true; this.speakEnabled = true; this.ctx = null; this.preferredVoice = null; this.voiceReady = false; }
     initVoices() {
         if (this.voiceReady) return;
         const choose = () => {
             const voices = window.speechSynthesis.getVoices();
             if (!voices || voices.length === 0) return;
-            const enVoices = voices.filter(v => v.lang === 'en-US' || v.lang === 'en_US');
-            const pick = (fn) => enVoices.find(fn) || voices.find(fn);
-            this.preferredVoice = pick(v => v.name.includes('Neural') && v.name.includes('Google'))
-                || pick(v => v.name.includes('Google US English'))
-                || pick(v => v.name.includes('Samantha'))
-                || pick(v => v.name.includes('Natural') && v.name.includes('Microsoft'))
-                || pick(v => v.name.includes('Microsoft') && v.name.includes('Zira'))
-                || pick(v => v.name.includes('Microsoft') && v.name.includes('David'))
-                || pick(v => v.lang === 'en-US')
+            this.preferredVoice = voices.find(v => v.name.includes('Google US English'))
+                || voices.find(v => v.name.includes('Samantha'))
+                || voices.find(v => v.name.includes('Microsoft') && v.lang === 'en-US')
+                || voices.find(v => v.lang === 'en-US')
                 || voices[0];
             this.voiceReady = true;
         };
@@ -102,136 +220,52 @@ class SoundManager {
         if (!this.enabled) return;
         this.ensureContext();
         const ctx = this.ctx, now = ctx.currentTime;
-
-        const note = (freq, dur, wave='sine', vol=0.12, delay=0) => {
-            const t = now + delay;
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g);
-            g.connect(ctx.destination);
-            o.type = wave;
-            o.frequency.setValueAtTime(freq, t);
-
-            const attack = 0.015;
-            const decay = 0.08;
-            const sustain = vol * 0.5;
-            const release = Math.max(0.02, dur - attack - decay);
-
-            g.gain.setValueAtTime(0, t);
-            g.gain.linearRampToValueAtTime(vol, t + attack);
-            g.gain.linearRampToValueAtTime(sustain, t + attack + decay);
-            g.gain.exponentialRampToValueAtTime(0.001, t + attack + decay + release);
-
-            o.start(t);
-            o.stop(t + dur);
+        const tone = (freq, dur, type='sine', vol=0.12) => {
+            const o = ctx.createOscillator(), g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.type = type; o.frequency.setValueAtTime(freq, now);
+            g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.001, now+dur);
+            o.start(now); o.stop(now+dur);
         };
-
-        const slide = (freqFrom, freqTo, dur, wave='sine', vol=0.12, delay=0) => {
-            const t = now + delay;
-            const o = ctx.createOscillator();
-            const g = ctx.createGain();
-            o.connect(g);
-            g.connect(ctx.destination);
-            o.type = wave;
-            o.frequency.setValueAtTime(freqFrom, t);
-            o.frequency.exponentialRampToValueAtTime(freqTo, t + dur * 0.6);
-
-            g.gain.setValueAtTime(0, t);
-            g.gain.linearRampToValueAtTime(vol, t + 0.01);
-            g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-
-            o.start(t);
-            o.stop(t + dur);
-        };
-
-        const bell = (freq, dur, vol=0.12, delay=0) => {
-            note(freq, dur, 'sine', vol, delay);
-            note(freq * 2, dur * 0.8, 'sine', vol * 0.3, delay);
-            note(freq * 3, dur * 0.5, 'sine', vol * 0.15, delay + 0.01);
-        };
-
         switch(type) {
-            case 'swap':
-                slide(350, 520, 0.12, 'sine', 0.1);
-                break;
-            case 'match':
-                [523, 659, 784].forEach((f, i) => {
-                    note(f, 0.22, 'sine', 0.09, i * 0.06);
-                    note(f * 2, 0.18, 'sine', 0.03, i * 0.06 + 0.01);
-                });
-                break;
-            case 'collect':
-                bell(880, 0.4, 0.14);
-                break;
-            case 'win':
-                [[523, 659, 784], [587, 740, 880], [659, 830, 988], [784, 988, 1175]].forEach((ch, i) => {
-                    ch.forEach(f => note(f, 0.55, 'triangle', 0.05, i * 0.18));
-                    ch.forEach(f => note(f * 2, 0.4, 'sine', 0.02, i * 0.18 + 0.02));
-                });
-                break;
-            case 'lose':
-                note(250, 0.35, 'sine', 0.08);
-                note(220, 0.35, 'sine', 0.08, 0.15);
-                note(190, 0.4, 'sine', 0.08, 0.3);
-                break;
-            case 'invalid':
-                note(220, 0.1, 'sine', 0.06);
-                note(200, 0.1, 'sine', 0.06, 0.12);
-                break;
-            case 'tick':
-                note(1200, 0.04, 'sine', 0.04);
-                break;
+            case 'swap': tone(600, 0.08); break;
+            case 'match': [523,659,784].forEach((f,i)=>tone(f,0.15,'sine',0.1)); break;
+            case 'collect': tone(880, 0.25, 'sine', 0.15); break;
+            case 'win': [[523,659,784],[587,740,880],[659,830,988]].forEach((ch,i)=>ch.forEach(f=>tone(f,0.4,'triangle',0.06))); break;
+            case 'lose': tone(200, 0.5, 'sawtooth', 0.08); break;
+            case 'invalid': tone(150, 0.1, 'square', 0.06); break;
+            case 'tick': tone(800, 0.05, 'sine', 0.05); break;
         }
     }
     speak(text) {
         if (!this.speakEnabled) return;
         if (!window.speechSynthesis) return;
         this.initVoices();
-        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-            try { window.speechSynthesis.cancel(); } catch(e) {}
-        }
-        if (!text || !text.trim()) return;
-        if (this._resumeTimer) clearInterval(this._resumeTimer);
-
-        const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+/g) || [text];
-        let idx = 0;
-
-        const speakNext = () => {
-            if (idx >= sentences.length) {
-                if (this._resumeTimer) clearInterval(this._resumeTimer);
-                return;
-            }
-            const s = sentences[idx++].trim();
-            if (!s) { speakNext(); return; }
-            const u = new SpeechSynthesisUtterance(s);
-            u.lang = 'en-US';
-            u.rate = 0.9;
-            u.pitch = 1.05;
-            u.volume = 1;
-            if (this.preferredVoice) u.voice = this.preferredVoice;
-            u.onend = speakNext;
-            u.onerror = (e) => { console.warn('TTS error:', e.error); speakNext(); };
-            try { window.speechSynthesis.speak(u); } catch(e) { console.warn('Speech synthesis failed:', e); }
-        };
-
-        this._resumeTimer = setInterval(() => {
-            if (window.speechSynthesis.speaking) window.speechSynthesis.resume();
-        }, 10000);
-
-        speakNext();
+        // Chrome 真实环境 cancel()+speak() 竞态会导致 utterance 被丢弃，
+        // 因此不再 cancel——让例句在 speech 队列里排队播放，宁可等一秒也不丢语音。
+        try { window.speechSynthesis.resume(); } catch(e){}
+        const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.volume = 1;
+        if (this.preferredVoice) u.voice = this.preferredVoice;
+        u.onstart = () => console.log('[TTS START]', text);
+        u.onend  = () => console.log('[TTS END]', text);
+        u.onerror = (e) => console.warn('[TTS ERROR]', text, e.error);
+        try {
+            window.speechSynthesis.speak(u);
+            console.log('[TTS QUEUED]', text, 'speaking=', window.speechSynthesis.speaking);
+        } catch(e) { console.warn('Speech synthesis failed:', e); }
     }
 }
 
 class WordMatchGame {
     constructor() {
         this.boardSize = 6; this.board = []; this.selectedTile = null;
-        this.level = 1; this.moves = 30; this.score = 0;
+        this.level = 1; this.moves = 30; this.score = 0; this.coins = 0;
         this.targetWord = ''; this.targetChinese = ''; this.targetSentence = ''; this.targetSentenceCn = '';
         this.collectedLetters = {}; this.isProcessing = false;
         this.hintCooldown = 0; this.autoHintTimer = null;
         this.sound = new SoundManager();
         this.gameMode = 'story';
-        this.timedTimer = null; this.timeLeft = 60;
+        this.timedTimer = null; this.timeLeft = 60; this.locked = false;
         this.endlessWords = 0; this.endlessDifficulty = 1;
         this.learnedWords = [];
         this.favorites = [];
@@ -247,34 +281,35 @@ class WordMatchGame {
         this.equippedBoard = 'default_board';
         this.equippedEffect = 'default_effect';
         this.equippedFrame = 'default_frame';
-        this.unlockedCharacters = ['dino'];
-        this.equippedCharacter = 'dino';
-        this.equippedItem = null;
-        this.particlePool = [];
-        this.wordLevels = [];
-        this.wordBank = [];
-        this.dailyBest = null;
+        this.playDates = {};
+        this.dailyCompletions = {};
+        this.failedWords = {};
+        this.totalCompletedWords = 0;
+        this.bestTimedWords = 0;
+        this.bestEndlessWords = 0;
+        this.dailyDate = '';
+        this.lastDailyReward = 0;
+        this.wordMastery = {};
+        this.toolInventory = {};
+        this.reviewBoostActive = false;
+        this.reduceMotion = false;
+        this.colorBlindMode = false;
+        this.unlockedCompanions = ['dino'];
+        this.equippedCompanion = 'dino';
+        this.companionInventory = {};
+        this.companionGrowth = {};
+        this.companionNames = {};
+        this.companionRenameUnlocked = {};
+        this.companionVoiceOn = true;
+        this.mechaShieldMoves = 0;
+        this.lastCompanionGreetDate = '';
+        this.deferredInstallPrompt = null;
+        this.letterColorMap = {};
+
+        this.wordLevels = WORD_LEVELS;
 
         this.loadGlobalSave();
-        this.loadWordBank();
-        this.loadDailySave();
-        this.loadWords().then(() => this.init());
-    }
-
-    async loadWords() {
-        try {
-            const res = await fetch('words.json');
-            if (!res.ok) throw new Error('Failed to load words.json');
-            const data = await res.json();
-            if (Array.isArray(data) && data.length > 0) {
-                this.wordLevels = data;
-            } else {
-                this.wordLevels = [];
-            }
-        } catch (e) {
-            console.warn('Could not load words.json:', e);
-            this.wordLevels = [];
-        }
+        this.init();
     }
 
     loadGlobalSave() {
@@ -283,21 +318,38 @@ class WordMatchGame {
             if (raw) {
                 const data = JSON.parse(raw);
                 const version = data.version || 1;
-                this.learnedWords = data.learnedWords || [];
-                this.favorites = data.favorites || [];
+                this.learnedWords = Array.isArray(data.learnedWords) ? data.learnedWords : [];
+                this.favorites = Array.isArray(data.favorites) ? data.favorites : [];
                 this.level = data.level || 1;
-                this.score = data.score || 0;
+                this.coins = data.coins != null ? data.coins : (data.score || 0);
                 this.bombs = data.bombs || 0;
                 this.nextBombAt = data.nextBombAt || 8000;
                 this.achievements = data.achievements || {};
-                this.unlockedSkins = data.unlockedSkins || ['default_theme','default_board','default_effect','default_frame'];
+                this.unlockedSkins = Array.isArray(data.unlockedSkins) ? data.unlockedSkins : ['default_theme','default_board','default_effect','default_frame'];
                 this.equippedTheme = data.equippedTheme || 'default_theme';
                 this.equippedBoard = data.equippedBoard || 'default_board';
                 this.equippedEffect = data.equippedEffect || 'default_effect';
                 this.equippedFrame = data.equippedFrame || 'default_frame';
-                this.unlockedCharacters = data.unlockedCharacters || ['dino'];
-                this.equippedCharacter = data.equippedCharacter || 'dino';
-                this.equippedItem = data.equippedItem || null;
+                this.playDates = data.playDates || {};
+                this.dailyCompletions = data.dailyCompletions || {};
+                this.failedWords = data.failedWords || {};
+                this.totalCompletedWords = data.totalCompletedWords || 0;
+                this.bestTimedWords = data.bestTimedWords || 0;
+                this.bestEndlessWords = data.bestEndlessWords || 0;
+                this.wordMastery = data.wordMastery || {};
+                this.toolInventory = data.toolInventory || {};
+                this.reviewBoostActive = !!data.reviewBoostActive;
+                this.reduceMotion = !!data.reduceMotion;
+                this.colorBlindMode = !!data.colorBlindMode;
+                this.unlockedCompanions = Array.isArray(data.unlockedCompanions) ? data.unlockedCompanions : ['dino'];
+                this.equippedCompanion = data.equippedCompanion || 'dino';
+                this.companionInventory = data.companionInventory || {};
+                this.companionGrowth = data.companionGrowth || {};
+                this.companionNames = data.companionNames || {};
+                this.companionRenameUnlocked = data.companionRenameUnlocked || {};
+                this.companionVoiceOn = data.companionVoiceOn !== undefined ? data.companionVoiceOn : true;
+                this.mechaShieldMoves = data.mechaShieldMoves || 0;
+                this.lastCompanionGreetDate = data.lastCompanionGreetDate !== undefined ? data.lastCompanionGreetDate : '';
                 if (data.speakEnabled !== undefined) this.sound.speakEnabled = data.speakEnabled;
                 if (version < 2) {
                     this.nextBombAt = Math.max(this.nextBombAt, 8000);
@@ -312,7 +364,7 @@ class WordMatchGame {
             learnedWords: this.learnedWords,
             favorites: this.favorites,
             level: this.level,
-            score: this.score,
+            coins: this.coins,
             bombs: this.bombs,
             nextBombAt: this.nextBombAt,
             achievements: this.achievements,
@@ -321,9 +373,26 @@ class WordMatchGame {
             equippedBoard: this.equippedBoard,
             equippedEffect: this.equippedEffect,
             equippedFrame: this.equippedFrame,
-            unlockedCharacters: this.unlockedCharacters,
-            equippedCharacter: this.equippedCharacter,
-            equippedItem: this.equippedItem,
+            playDates: this.playDates,
+            dailyCompletions: this.dailyCompletions,
+            failedWords: this.failedWords,
+            totalCompletedWords: this.totalCompletedWords,
+            bestTimedWords: this.bestTimedWords,
+            bestEndlessWords: this.bestEndlessWords,
+            wordMastery: this.wordMastery,
+            toolInventory: this.toolInventory,
+            reviewBoostActive: this.reviewBoostActive,
+            reduceMotion: this.reduceMotion,
+            colorBlindMode: this.colorBlindMode,
+            unlockedCompanions: this.unlockedCompanions,
+            equippedCompanion: this.equippedCompanion,
+            companionInventory: this.companionInventory,
+            companionGrowth: this.companionGrowth,
+            companionNames: this.companionNames,
+            companionRenameUnlocked: this.companionRenameUnlocked,
+            companionVoiceOn: this.companionVoiceOn,
+            mechaShieldMoves: this.mechaShieldMoves,
+            lastCompanionGreetDate: this.lastCompanionGreetDate,
             speakEnabled: this.sound.speakEnabled,
             date: Date.now()
         };
@@ -332,11 +401,9 @@ class WordMatchGame {
     }
 
     checkBombReward() {
-        const discount = this.getEffect('bombDiscount');
-        const interval = discount ? Math.floor(8000 * discount) : 8000;
-        while (this.score >= this.nextBombAt) {
+        while (this.coins >= this.nextBombAt) {
             this.bombs++;
-            this.nextBombAt += interval;
+            this.nextBombAt += 8000;
             this.showToast(`💣 获得字母炸弹! (当前 ${this.bombs} 个)`);
         }
     }
@@ -351,9 +418,10 @@ class WordMatchGame {
     updateGlobalStats() {
         const uniqueWords = [...new Set(this.learnedWords.map(w => w.en))];
         document.getElementById('statLevel').textContent = this.level;
-        document.getElementById('statScore').textContent = this.score;
+        document.getElementById('statScore').textContent = this.coins;
         document.getElementById('statWords').textContent = uniqueWords.length;
         document.getElementById('statVocab').textContent = this.favorites.length;
+        this.updateDailyCard();
         this.renderLevelMap();
         const statsGrid = document.getElementById('globalStats');
         if (statsGrid) {
@@ -364,24 +432,209 @@ class WordMatchGame {
         }
     }
 
+    getDateKey(date = new Date()) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    hashString(str) {
+        let hash = 2166136261;
+        for (let i = 0; i < str.length; i++) {
+            hash ^= str.charCodeAt(i);
+            hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+        }
+        return Math.abs(hash >>> 0);
+    }
+
+    seededPick(pool, count, seed) {
+        const arr = [...pool];
+        const picked = [];
+        let s = seed || 1;
+        while (arr.length && picked.length < count) {
+            s = (s * 1664525 + 1013904223) >>> 0;
+            const idx = s % arr.length;
+            picked.push(arr.splice(idx, 1)[0]);
+        }
+        return picked;
+    }
+
+    hexToLab(hex) {
+        const rgb = hex.match(/[a-f\d]{2}/gi).map(value => parseInt(value, 16) / 255);
+        const linear = rgb.map(value => value > 0.04045
+            ? Math.pow((value + 0.055) / 1.055, 2.4)
+            : value / 12.92);
+        const x = (linear[0] * 0.4124 + linear[1] * 0.3576 + linear[2] * 0.1805) / 0.95047;
+        const y = linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+        const z = (linear[0] * 0.0193 + linear[1] * 0.1192 + linear[2] * 0.9505) / 1.08883;
+        const pivot = value => value > 0.008856 ? Math.cbrt(value) : (7.787 * value) + (16 / 116);
+        const fx = pivot(x), fy = pivot(y), fz = pivot(z);
+        return { l:(116 * fy) - 16, a:500 * (fx - fy), b:200 * (fy - fz) };
+    }
+
+    colorDistance(left, right) {
+        const a = this.hexToLab(left), b = this.hexToLab(right);
+        return Math.sqrt(
+            Math.pow(a.l - b.l, 2) +
+            Math.pow(a.a - b.a, 2) +
+            Math.pow(a.b - b.b, 2)
+        );
+    }
+
+    selectDistinctPalette(count, seedText) {
+        let seed = this.hashString(seedText || 'word-match');
+        const core = [...CORE_LETTER_COLORS];
+        for (let i = core.length - 1; i > 0; i--) {
+            seed = (seed * 1664525 + 1013904223) >>> 0;
+            const j = seed % (i + 1);
+            [core[i], core[j]] = [core[j], core[i]];
+        }
+        const selected = core.slice(0, Math.min(count, core.length));
+        const coreHex = new Set(CORE_LETTER_COLORS.map(color => color.bg));
+        const remaining = LETTER_COLOR_PALETTE.filter(color => !coreHex.has(color.bg));
+        while (selected.length < count && remaining.length > 0) {
+            let bestIndex = 0;
+            let bestScore = -1;
+            remaining.forEach((candidate, index) => {
+                const minDistance = Math.min(...selected.map(color => this.colorDistance(candidate.bg, color.bg)));
+                if (minDistance > bestScore) {
+                    bestIndex = index;
+                    bestScore = minDistance;
+                }
+            });
+            selected.push(remaining.splice(bestIndex, 1)[0]);
+        }
+        return selected;
+    }
+
+    buildLetterColorMap() {
+        const letters = [...new Set(this.getLetterPool())].sort();
+        const targetSet = new Set(this.targetWord.split(''));
+        const ordered = [
+            ...letters.filter(ch => targetSet.has(ch)),
+            ...letters.filter(ch => !targetSet.has(ch))
+        ];
+        const palette = this.selectDistinctPalette(ordered.length, `${this.gameMode}-${this.level}-${this.targetWord}`);
+        this.letterColorMap = {};
+        ordered.forEach((letter, index) => {
+            const color = palette[index];
+            const previousColors = palette.slice(0, index);
+            const nearestDistance = previousColors.length
+                ? Math.min(...previousColors.map(previous => this.colorDistance(color.bg, previous.bg)))
+                : Infinity;
+            const needsPattern = nearestDistance < 52;
+            const pattern = needsPattern
+                ? LETTER_PATTERNS[(index % (LETTER_PATTERNS.length - 1)) + 1]
+                : '';
+            this.letterColorMap[letter] = { ...color, pattern };
+        });
+    }
+
+    applyTileColor(tile, letter) {
+        const color = this.letterColorMap[letter] || LETTER_COLOR_PALETTE[0];
+        const gradient = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg2} 100%)`;
+        const fallbackPattern = LETTER_PATTERNS[(Math.max(0, letter.charCodeAt(0) - 65) % (LETTER_PATTERNS.length - 1)) + 1];
+        const pattern = this.colorBlindMode ? fallbackPattern : color.pattern;
+        const background = pattern ? `${pattern}, ${gradient}` : gradient;
+        tile.style.setProperty('background', background, 'important');
+        tile.style.color = color.fg;
+        tile.style.border = `2px solid ${color.border}`;
+        tile.style.textShadow = '0 1px 2px rgba(0,0,0,0.28)';
+    }
+
+    markPlayDay() {
+        this.playDates[this.getDateKey()] = true;
+    }
+
+    getLearningStreak() {
+        let streak = 0;
+        const date = new Date();
+        while (true) {
+            const key = this.getDateKey(date);
+            if (!this.playDates[key]) break;
+            streak++;
+            date.setDate(date.getDate() - 1);
+        }
+        return streak;
+    }
+
+    // 把「今天」也算进连续天数：今天若已游玩则与 getLearningStreak 等价；
+    // 今天尚未记录（如登录问候发生在 markPlayDay 之前）则按「昨天往回连续天数 + 1」计。
+    // 仅用于读取，不写入 playDates，无副作用。
+    getStreakIncludingToday() {
+        if (this.playDates[this.getDateKey()]) return this.getLearningStreak();
+        let streak = 0;
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        while (true) {
+            const key = this.getDateKey(date);
+            if (!this.playDates[key]) break;
+            streak++;
+            date.setDate(date.getDate() - 1);
+        }
+        return streak + 1;
+    }
+
+    // 距上次游玩的天数（0=今天玩过，1=昨天，>1=隔了几天没来）；无任何记录返回 0
+    getDaysSinceLastPlay() {
+        const keys = Object.keys(this.playDates || {});
+        if (!keys.length) return 0;
+        const today = new Date();
+        for (let gap = 0; gap <= 365; gap++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - gap);
+            if (this.playDates[this.getDateKey(d)]) return gap;
+        }
+        return 366;
+    }
+
+    // 登录回访：连续天数 daily 台词 / 久违 miss 台词，每日各只触发一次
+    companionLoginGreet() {
+        const id = this.equippedCompanion;
+        if (!id) return;
+        const today = this.getDateKey();
+        if (this.lastCompanionGreetDate === today) return;
+        const gap = this.getDaysSinceLastPlay();
+        // 含今天口径：登录早于 markPlayDay，今天还没记录，需把今天算进连续天数
+        const streak = this.getStreakIncludingToday();
+        let scene = null;
+        if (gap > 1) scene = 'miss';
+        else if (streak >= 2) scene = 'daily';
+        if (scene) {
+            this.lastCompanionGreetDate = today;
+            this.saveGlobal();
+            // daily 显示的连续天数须与触发口径一致（含今天），故显式传入
+            const daysOverride = scene === 'daily' ? streak : null;
+            setTimeout(() => this.sayCompanionLine(id, scene, false, daysOverride, true), 600);
+        }
+    }
+
+    updateDailyCard() {
+        const el = document.getElementById('dailyDesc');
+        if (!el) return;
+        const today = this.getDateKey();
+        el.innerHTML = this.dailyCompletions[today]
+            ? '今日已完成<br>明天再来挑战'
+            : '每天固定3个单词<br>完成奖励800分';
+    }
+
     init() {
-        window.onerror = (msg, url, line, col, err) => {
-            console.error('Game error:', msg, 'at', line, col, err);
-            const indicator = document.getElementById('saveIndicator');
-            if (indicator) {
-                indicator.textContent = '错误: ' + msg;
-                indicator.classList.add('show');
-                setTimeout(() => indicator.classList.remove('show'), 5000);
-            }
-        };
+        this.loadGlobalSave();
         this.bindEvents();
         this.updateGlobalStats();
         this.renderAchievements();
         this.renderLevelMap();
         this.updateEquipBar();
+        this.updateToolUI();
+        this.renderCompanionDock();
+        this.companionLoginGreet();
         this.applyEquippedTheme();
-        this.renderCharacterBar();
-        this.renderDailyChallenge();
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches && localStorage.getItem('wordMatchGlobal') === null) {
+            this.reduceMotion = true;
+        }
+        this.applyAccessibilitySettings();
+        this.setupPWA();
         const ttsBtn = document.getElementById('ttsBtn');
         if (ttsBtn) {
             ttsBtn.textContent = this.sound.speakEnabled ? '🗣️ 朗读' : '🤐 静音';
@@ -393,52 +646,11 @@ class WordMatchGame {
     }
 
     bindEvents() {
-        const board = document.getElementById('gameBoard');
-
-        board.addEventListener('click', (e) => {
-            if (this.ignoreNextClick) { this.ignoreNextClick = false; return; }
+        document.getElementById('gameBoard').addEventListener('click', (e) => {
             const tile = e.target.closest('.tile');
             if (!tile) return;
             const r = parseInt(tile.dataset.r), c = parseInt(tile.dataset.c);
             this.handleClick(r, c);
-        });
-
-        let touchStart = null;
-        board.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            const tile = e.target.closest('.tile');
-            if (!tile) { touchStart = null; return; }
-            touchStart = {
-                x: touch.clientX, y: touch.clientY,
-                r: parseInt(tile.dataset.r), c: parseInt(tile.dataset.c)
-            };
-        }, { passive: true });
-
-        board.addEventListener('touchend', (e) => {
-            if (!touchStart) return;
-            const touch = e.changedTouches[0];
-            const dx = touch.clientX - touchStart.x;
-            const dy = touch.clientY - touchStart.y;
-            const r = touchStart.r, c = touchStart.c;
-            touchStart = null;
-
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 20) {
-                const nc = dx > 0 ? c + 1 : c - 1;
-                if (nc >= 0 && nc < this.boardSize) { this.ignoreNextClick = true; this.handleSwipe(r, c, r, nc); }
-            } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 20) {
-                const nr = dy > 0 ? r + 1 : r - 1;
-                if (nr >= 0 && nr < this.boardSize) { this.ignoreNextClick = true; this.handleSwipe(r, c, nr, c); }
-            }
-        }, { passive: true });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                if (this.bombMode) this.cancelBomb();
-                else if (document.getElementById('shopModal').classList.contains('active')) this.closeShop();
-                else if (document.getElementById('vocabModal').classList.contains('active')) document.getElementById('vocabModal').classList.remove('active');
-                else if (document.getElementById('detailModal').classList.contains('active')) this.closeDetailModal();
-                else if (document.getElementById('modal').classList.contains('active')) this.closeModal();
-            }
         });
 
         document.querySelectorAll('.mode-card').forEach(card => {
@@ -453,7 +665,24 @@ class WordMatchGame {
         document.querySelector('[data-action="menu"]').addEventListener('click', () => this.backToMenu());
         document.querySelector('[data-action="vocab"]').addEventListener('click', () => this.showVocab());
         document.querySelector('[data-action="shop"]').addEventListener('click', () => this.openShop());
+        document.querySelector('[data-action="report"]').addEventListener('click', () => this.showReport());
         document.querySelector('[data-action="word-detail"]').addEventListener('click', () => this.showWordDetail());
+        document.querySelectorAll('[data-tool]').forEach(btn => {
+            btn.addEventListener('click', () => this.useTool(btn.dataset.tool));
+        });
+        const installBtn = document.querySelector('[data-action="install"]');
+        if (installBtn) installBtn.addEventListener('click', () => this.installApp());
+        document.getElementById('reduceMotionToggle').addEventListener('change', (event) => {
+            this.reduceMotion = event.target.checked;
+            this.applyAccessibilitySettings();
+            this.saveGlobal();
+        });
+        document.getElementById('colorBlindToggle').addEventListener('change', (event) => {
+            this.colorBlindMode = event.target.checked;
+            this.applyAccessibilitySettings();
+            if (this.board.length) this.renderBoard();
+            this.saveGlobal();
+        });
 
         document.getElementById('tutorialBtn').addEventListener('click', () => this.nextTutorialStep());
         document.querySelectorAll('[data-shop-tab]').forEach(tab => {
@@ -461,26 +690,52 @@ class WordMatchGame {
         });
         document.querySelector('[data-action="close-shop"]').addEventListener('click', () => this.closeShop());
         document.getElementById('modalBtn').addEventListener('click', () => this.closeModal());
-        document.getElementById('modalShareBtn').addEventListener('click', () => this.generateShareImage());
+        document.getElementById('modalShareBtn').onclick = () => this.generateShareImage();
         document.getElementById('favBtn').addEventListener('click', () => this.toggleFavorite());
         document.querySelector('[data-action="close-detail"]').addEventListener('click', () => this.closeDetailModal());
         document.querySelector('[data-action="close-vocab"]').addEventListener('click', () => {
             document.getElementById('vocabModal').classList.remove('active');
         });
-
-        document.querySelector('[data-action="word-bank"]').addEventListener('click', () => this.openWordBank());
-        document.querySelector('[data-action="close-word-bank"]').addEventListener('click', () => this.closeWordBank());
-        document.getElementById('wbAddBtn').addEventListener('click', () => this.addWordBankFromForm());
-        document.querySelector('[data-action="export-word-bank"]').addEventListener('click', () => this.exportWordBank());
-        document.querySelector('[data-action="import-word-bank"]').addEventListener('click', () => document.getElementById('wbImportFile').click());
-        document.getElementById('wbImportFile').addEventListener('change', (e) => this.importWordBank(e));
+        document.querySelector('[data-action="close-report"]').addEventListener('click', () => {
+            document.getElementById('reportModal').classList.remove('active');
+        });
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            this.deferredInstallPrompt = e;
+            const card = document.getElementById('installCard');
+            if (card) card.classList.add('show');
+        });
     }
 
-    handleSwipe(r1, c1, r2, c2) {
-        if (this.isProcessing || this.bombMode) return;
-        if (this.gameMode !== 'endless' && this.moves <= 0) return;
-        this.clearHint();
-        this.trySwap(r1, c1, r2, c2);
+    setupPWA() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(() => {});
+        }
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+            const card = document.getElementById('installCard');
+            if (card) card.classList.remove('show');
+        } else {
+            const card = document.getElementById('installCard');
+            if (card) card.classList.add('show');
+        }
+    }
+
+    applyAccessibilitySettings() {
+        document.body.classList.toggle('reduce-motion', this.reduceMotion);
+        document.getElementById('reduceMotionToggle').checked = this.reduceMotion;
+        document.getElementById('colorBlindToggle').checked = this.colorBlindMode;
+    }
+
+    async installApp() {
+        if (!this.deferredInstallPrompt) {
+            this.showToast('请在浏览器菜单里选择“添加到主屏幕”');
+            return;
+        }
+        this.deferredInstallPrompt.prompt();
+        await this.deferredInstallPrompt.userChoice;
+        this.deferredInstallPrompt = null;
+        const card = document.getElementById('installCard');
+        if (card) card.classList.remove('show');
     }
 
     openShop() {
@@ -503,68 +758,456 @@ class WordMatchGame {
         const scoreEl = document.getElementById('shopScore');
         if (!grid) return;
         grid.innerHTML = '';
-        scoreEl.textContent = `当前积分: ${this.score}`;
-        if (type === 'character') {
-            CHARACTERS.forEach(ch => {
-                const owned = this.unlockedCharacters.includes(ch.id);
-                const equipped = this.equippedCharacter === ch.id;
-                const card = document.createElement('div');
-                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
-                let btnHtml = '';
-                if (equipped) btnHtml = `<button class="shop-btn owned" disabled>已出战</button>`;
-                else if (owned) btnHtml = `<button class="shop-btn equip" onclick="game.equipCharacter('${ch.id}')">出战</button>`;
-                else { const canBuy = this.score >= ch.price; btnHtml = `<button class="shop-btn buy" onclick="game.buyCharacter('${ch.id}')" ${canBuy ? '' : 'disabled'}>${ch.price === 0 ? '免费' : ch.price + '分'}</button>`; }
-                card.innerHTML = `${equipped ? '<div class="equipped-badge">出战中</div>' : ''}<div class="shop-preview" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#1a1a2e;border:2px solid #e94560">${ch.emoji}</div><div class="shop-name">${ch.name}</div><div style="font-size:10px;color:#888;margin-bottom:4px">${ch.desc}</div>${btnHtml}`;
-                grid.appendChild(card);
-            });
-        } else if (type === 'item') {
-            CHARACTER_ITEMS.forEach(it => {
-                const owned = this.unlockedSkins.includes(it.id) || this.equippedItem === it.id;
-                const equipped = this.equippedItem === it.id;
-                const card = document.createElement('div');
-                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
-                let btnHtml = '';
-                if (equipped) btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
-                else if (owned) btnHtml = `<button class="shop-btn equip" onclick="game.equipItem('${it.id}')">装备</button>`;
-                else { const canBuy = this.score >= it.price; btnHtml = `<button class="shop-btn buy" onclick="game.buyItem('${it.id}')" ${canBuy ? '' : 'disabled'}>${it.price}分</button>`; }
-                card.innerHTML = `${equipped ? '<div class="equipped-badge">已装备</div>' : ''}<div class="shop-preview" style="font-size:32px;display:flex;align-items:center;justify-content:center;background:#f8f9fa">${it.emoji}</div><div class="shop-name">${it.name}</div><div style="font-size:10px;color:#888;margin-bottom:4px">${it.desc}</div>${btnHtml}`;
-                grid.appendChild(card);
-            });
-        } else {
-            const items = SHOP_ITEMS.filter(i => i.type === type);
-            items.forEach(item => {
-                const owned = this.unlockedSkins.includes(item.id);
-                const equipped = this[`equipped${type.charAt(0).toUpperCase() + type.slice(1)}`] === item.id;
-                const card = document.createElement('div');
-                card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
-                let btnHtml = '';
-                if (equipped) {
-                    btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
-                } else if (owned) {
-                    btnHtml = `<button class="shop-btn equip" onclick="game.equipSkin('${item.id}')">装备</button>`;
-                } else {
-                    const canBuy = this.score >= item.price;
-                    btnHtml = `<button class="shop-btn buy" onclick="game.buySkin('${item.id}')" ${canBuy ? '' : 'disabled'}>${item.price === 0 ? '免费' : item.price + '分'}</button>`;
-                }
-                card.innerHTML = `
-                    ${equipped ? '<div class="equipped-badge">已装备</div>' : ''}
-                    <div class="shop-preview" style="background:${item.preview}"></div>
-                    <div class="shop-name">${item.name}</div>
-                    ${btnHtml}
-                `;
-                grid.appendChild(card);
-            });
+        scoreEl.textContent = `当前积分: ${this.coins}`;
+        if (type === 'companion') {
+            this.renderCompanionShop(grid);
+            return;
         }
+        const items = SHOP_ITEMS.filter(i => i.type === type);
+        items.forEach(item => {
+            const isTool = type === 'tool';
+            const owned = isTool ? false : this.unlockedSkins.includes(item.id);
+            const equipped = !isTool && this[`equipped${type.charAt(0).toUpperCase() + type.slice(1)}`] === item.id;
+            const count = this.toolInventory[item.id] || 0;
+            const card = document.createElement('div');
+            card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+            let btnHtml = '';
+            if (isTool) {
+                const canBuy = this.coins >= item.price;
+                btnHtml = `<button class="shop-btn buy" onclick="game.buyTool('${item.id}')" ${canBuy ? '' : 'disabled'}>${item.price}分 · 已有${count}</button>`;
+            } else if (equipped) {
+                btnHtml = `<button class="shop-btn owned" disabled>已装备</button>`;
+            } else if (owned) {
+                btnHtml = `<button class="shop-btn equip" onclick="game.equipSkin('${item.id}')">装备</button>`;
+            } else {
+                const canBuy = this.coins >= item.price;
+                btnHtml = `<button class="shop-btn buy" onclick="game.buySkin('${item.id}')" ${canBuy ? '' : 'disabled'}>${item.price === 0 ? '免费' : item.price + '分'}</button>`;
+            }
+            card.innerHTML = `
+                ${equipped ? '<div class="equipped-badge">已装备</div>' : ''}
+                ${this.getShopPreviewHTML(item)}
+                <div class="shop-name">${item.name}</div>
+                ${item.desc ? `<div class="shop-desc">${item.desc}</div>` : ''}
+                ${btnHtml}
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    renderCompanionShop(grid) {
+        grid.innerHTML = `<div class="companion-help">
+            <strong>伙伴养成：</strong>小恐龙默认加入队伍；机甲和公主可使用积分解锁。每购买 1 个伙伴专属道具，或每通关一关（含每日/复习），当前出战伙伴羁绊 +1。羁绊达到 3 点和 8 点时，角色进化、外观升级，专属道具效果也随之增强。
+        </div>`;
+        COMPANIONS.forEach(companion => {
+            const owned = this.unlockedCompanions.includes(companion.id);
+            const equipped = this.equippedCompanion === companion.id;
+            const item = COMPANION_ITEMS.find(entry => entry.companion === companion.id);
+            const count = this.companionInventory[item.id] || 0;
+            const growth = this.getCompanionGrowth(companion.id);
+            const card = document.createElement('div');
+            card.className = `shop-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}`;
+            let actions = '';
+            if (!owned) {
+                actions = `<button class="shop-btn buy" onclick="game.buyCompanion('${companion.id}')" ${this.coins >= companion.price ? '' : 'disabled'}>${companion.price}分解锁</button>`;
+            } else {
+                actions = equipped
+                    ? '<button class="shop-btn owned" disabled>已出战</button>'
+                    : `<button class="shop-btn equip" onclick="game.equipCompanion('${companion.id}')">设为伙伴</button>`;
+                actions += `<button class="shop-btn buy" onclick="game.buyCompanionItem('${item.id}')" ${this.coins >= item.price ? '' : 'disabled'}>${item.icon} ${item.price}分 · 已有${count}</button>`;
+            }
+            card.innerHTML = `
+                ${equipped ? '<div class="equipped-badge">出战中</div>' : ''}
+                <div class="companion-card-preview">${this.getCompanionAvatarHTML(companion, growth.level)}</div>
+                <div class="shop-name">${companion.name}</div>
+                <div class="companion-item-badge">${this.getCompanionEffectText(companion.id, growth.level)}</div>
+                <div class="companion-level">${growth.label} · 羁绊 ${growth.points}/${growth.next}</div>
+                <div class="companion-growth"><div class="companion-growth-fill" style="width:${growth.percent}%"></div></div>
+                ${actions}
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    buyCompanion(id) {
+        const companion = COMPANIONS.find(item => item.id === id);
+        if (!companion || this.unlockedCompanions.includes(id)) return;
+        if (this.coins < companion.price) return this.showToast('积分不足!');
+        this.coins -= companion.price;
+        this.unlockedCompanions.push(id);
+        this.equipCompanion(id);
+        this.showToast(`🎮 新伙伴加入：${companion.name}`);
+        this.saveGlobal();
+        this.renderShop('companion');
+    }
+
+    equipCompanion(id) {
+        if (!this.unlockedCompanions.includes(id)) return;
+        this.equippedCompanion = id;
+        this.renderCompanionDock();
+        this.saveGlobal();
+        this.renderShop('companion');
+    }
+
+    buyCompanionItem(id) {
+        const item = COMPANION_ITEMS.find(entry => entry.id === id);
+        if (!item || !this.unlockedCompanions.includes(item.companion)) return;
+        if (this.coins < item.price) return this.showToast('积分不足!');
+        this.coins -= item.price;
+        this.companionInventory[id] = (this.companionInventory[id] || 0) + 1;
+        this.showToast(`🎒 获得 ${item.name}`);
+        this.gainCompanionBond(item.companion, 1);
+        this.renderCompanionDock();
+        this.saveGlobal();
+        this.renderShop('companion');
+        this.updateUI();
+    }
+
+    useCompanionItem() {
+        const companion = COMPANIONS.find(item => item.id === this.equippedCompanion) || COMPANIONS[0];
+        const count = this.companionInventory[companion.item] || 0;
+        if (count <= 0) {
+            this.showToast(`去伙伴商店购买「${companion.itemName}」`);
+            return;
+        }
+        const level = this.getCompanionGrowth(companion.id).level;
+        if (companion.id === 'dino') {
+            if (this.gameMode === 'endless') return this.showToast('无尽模式不需要补充步数');
+            this.moves += [5, 6, 8, 9, 10, 12][level - 1];
+        } else if (companion.id === 'mecha') {
+            this.mechaShieldMoves += [3, 4, 5, 6, 7, 8][level - 1];
+        } else {
+            const fillCount = [1, 1, 2, 2, 3, 3][level - 1];
+            let filled = 0;
+            for (let i = 0; i < fillCount; i++) {
+                const missing = this.targetWord.split('').find(letter => {
+                    const needed = this.targetWord.split(letter).length - 1;
+                    return (this.collectedLetters[letter] || 0) < needed;
+                });
+                if (!missing) break;
+                this.collectedLetters[missing] = (this.collectedLetters[missing] || 0) + 1;
+                filled++;
+            }
+            if (filled === 0) return this.showToast('当前单词已经收集完成');
+            this.renderTarget();
+            this.checkWin();
+        }
+        this.companionInventory[companion.item]--;
+        this.showToast(`✨ ${companion.itemName} 已生效`);
+        this.renderCompanionDock();
+        this.updateUI();
+        this.saveGlobal();
+    }
+
+    renderCompanionDock() {
+        const dock = document.getElementById('companionDock');
+        if (!dock) return;
+        const companion = COMPANIONS.find(item => item.id === this.equippedCompanion) || COMPANIONS[0];
+        const count = this.companionInventory[companion.item] || 0;
+        const growth = this.getCompanionGrowth(companion.id);
+        const shield = this.mechaShieldMoves > 0 ? ` · 护盾剩余 ${this.mechaShieldMoves} 步` : '';
+        const unlocked = !!this.companionRenameUnlocked[companion.id];
+        dock.innerHTML = `
+            <div class="companion-stage">
+                ${this.getCompanionAvatarHTML(companion, growth.level)}
+                <span class="companion-mood" id="companionMood">😊</span>
+            </div>
+            <div class="companion-copy">
+                <div class="companion-name-row">
+                    <span class="companion-name">${this._escapeHtml(growth.name)}</span>
+                    <button class="companion-rename ${unlocked ? '' : 'locked'}" onclick="game.renameCompanion('${companion.id}')" title="给伙伴改名">✏️</button>
+                    <button class="companion-voice" id="companionVoiceBtn" onclick="game.toggleCompanionVoice()" title="${this.companionVoiceOn ? '关闭伙伴语音' : '开启伙伴语音'}">${this.companionVoiceOn ? '🔊' : '🔇'}</button>
+                </div>
+                <div class="companion-bubble" id="companionBubble"></div>
+                <div class="companion-effect">${this.getCompanionEffectText(companion.id, growth.level)}${shield}</div>
+                <div class="companion-level">${growth.label} · 羁绊 ${growth.points}/${growth.next}</div>
+                <div class="companion-growth"><div class="companion-growth-fill" style="width:${growth.percent}%"></div></div>
+            </div>
+            <button class="companion-use" onclick="game.useCompanionItem()" ${count <= 0 ? 'disabled' : ''}>${companion.itemName} ×${count}</button>
+        `;
+        // 注意：这里不再触发台词。dock 每次 updateUI 都会重渲染，若在此朗读，
+        // 整关进行中会反复抢占 speech 通道、掐断例句朗读。伙伴台词改为只在每关开始时
+        // 由 greetCompanion() 播一次。
+    }
+
+    // 每关开始时伙伴打一次招呼（含语音）。整关进行中不再发声，
+    // 例句朗读因此始终独占 speech 通道，稳定可读出。
+    greetCompanion() {
+        const id = this.equippedCompanion;
+        if (!id) return;
+        this.sayCompanionLine(id, 'idle', false, null, true);
+    }
+
+    getCompanionName(id) {
+        return this.companionNames[id] || COMPANION_DEFAULT_NAMES[id] || '伙伴';
+    }
+
+    renameCompanion(id) {
+        if (!this.companionRenameUnlocked[id]) {
+            this.showToast('进化后才能给伙伴改名哦~');
+            return;
+        }
+        const cur = this.getCompanionName(id);
+        const input = prompt('给伙伴起个名字吧（最多6个字）', cur);
+        if (input === null) return;
+        const name = input.trim().slice(0, 6);
+        if (!name) { this.showToast('名字不能为空哦'); return; }
+        this.companionNames[id] = name;
+        this.saveGlobal();
+        this.renderCompanionDock();
+        const shopModal = document.getElementById('shopModal');
+        if (shopModal && shopModal.classList.contains('active')) this.renderShop('companion');
+        this.showToast('已改名为「' + name + '」');
+    }
+
+    _escapeHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    _guessGender(v) {
+        const name = (v.name || '').toLowerCase();
+        const g = v.gender ? String(v.gender).toLowerCase() : '';
+        if (g.indexOf('female') !== -1) return 'female';
+        if (g.indexOf('male') !== -1) return 'male';
+        if (VOICE_GENDER_HINTS.female.some(n => name.indexOf(n) !== -1)) return 'female';
+        if (VOICE_GENDER_HINTS.male.some(n => name.indexOf(n) !== -1)) return 'male';
+        return null;
+    }
+    _pickVoice(id) {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+        const voices = window.speechSynthesis.getVoices();
+        if (!voices || voices.length === 0) return null;
+        const enVoices = voices.filter(v => v.lang && v.lang.toLowerCase().indexOf('en') === 0);
+        if (!enVoices.length) return null;
+        const cfg = COMPANION_VOICE[id] || {};
+        // 1) 先按具体音色名精确匹配
+        const prefer = cfg.prefer || [];
+        for (const key of prefer) {
+            const k = key.toLowerCase();
+            const hit = enVoices.find(v => v.name && v.name.toLowerCase().indexOf(k) !== -1);
+            if (hit) return hit;
+        }
+        // 2) 按期望性别推断（多数浏览器无 voice.gender，靠音色名库）
+        if (cfg.gender) {
+            const match = enVoices.find(v => this._guessGender(v) === cfg.gender);
+            if (match) return match;
+            // 3) 退而求其次：避免选到反性别的音色
+            const opposite = cfg.gender === 'male' ? 'female' : 'male';
+            const notOpposite = enVoices.find(v => this._guessGender(v) !== opposite);
+            if (notOpposite) return notOpposite;
+        }
+        return enVoices[0];
+    }
+
+    speakCompanionLine(id, text) {
+        if (!this.companionVoiceOn) return;
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        try {
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'en-US';
+            const v = COMPANION_VOICE[id] || {};
+            u.pitch = v.pitch != null ? v.pitch : 1;
+            u.rate  = v.rate  != null ? v.rate  : 1;
+            const picked = this._pickVoice(id);
+            if (picked) u.voice = picked;
+            window.speechSynthesis.speak(u);
+        } catch(e) {}
+    }
+
+    sayCompanionLine(id, scene, soft = false, daysOverride = null, withVoice = false) {
+        const bubble = document.getElementById('companionBubble');
+        const mood = document.getElementById('companionMood');
+        if (!bubble) return;
+        if (soft && bubble.classList.contains('show')) return;
+        const lines = (COMPANION_LINES[id] || {})[scene];
+        if (!lines || !lines.length) return;
+        const idx = Math.floor(Math.random() * lines.length);
+        const line = lines[idx];
+        const growth = this.getCompanionGrowth(id);
+        const days = daysOverride != null ? daysOverride : (this.getLearningStreak ? this.getLearningStreak() : 0);
+        const safeName = this._escapeHtml(growth.name);
+        const en = line.en.replace(/\{name\}/g, safeName).replace(/\{days\}/g, days);
+        const zh = line.zh.replace(/\{name\}/g, safeName).replace(/\{days\}/g, days);
+        bubble.innerHTML = `<span class="bubble-en">${en}</span><span class="bubble-zh">${zh}</span>`;
+        bubble.classList.add('show');
+        const moods = { idle:'😊', win:'🤩', evolve:'✨', daily:'🥰', miss:'🥺' };
+        if (mood) {
+            mood.textContent = moods[scene] || '😊';
+            if (!this.reduceMotion) { mood.classList.remove('bounce'); void mood.offsetWidth; mood.classList.add('bounce'); }
+        }
+        // 仅在「每关开始」这一次才发声（withVoice）。整关进行中绝不朗读伙伴台词，
+        // 把 speechSynthesis 通道完整让给例句朗读——否则 speak() 里的 cancel()+speak()
+        // 在真实 Chrome 上会有竞态，导致例句被丢弃读不出来（核心学习功能优先）。
+        if (withVoice) this.speakCompanionLine(id, line.en.replace(/\{name\}/g, growth.name).replace(/\{days\}/g, days));
+        clearTimeout(this._bubbleTimer);
+        const dur = (scene === 'evolve' || scene === 'miss') ? 4000 : 2600;
+        this._bubbleTimer = setTimeout(() => {
+            bubble.classList.remove('show');
+            // 注意：这里不再全局 cancel 朗读——伙伴台词是短句会自然播完，
+            // 而例句朗读（sound.speak）共用同一个 speechSynthesis 通道，
+            // 全局 cancel 会把通关后正在播放的例句拦腰掐断（核心学习内容优先）。
+        }, dur);
+    }
+
+    toggleCompanionVoice() {
+        this.companionVoiceOn = !this.companionVoiceOn;
+        if (!this.companionVoiceOn && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            try { window.speechSynthesis.cancel(); } catch(e) {}
+        }
+        this.saveGlobal();
+        this.renderCompanionDock();
+        this.showToast(this.companionVoiceOn ? '🔊 伙伴语音已开启' : '🔇 伙伴语音已静音');
+    }
+
+    gainCompanionBond(id, amount) {
+        if (!id || !amount) return { growth: null, evolved: false };
+        const before = this.getCompanionGrowth(id).level;
+        this.companionGrowth[id] = (this.companionGrowth[id] || 0) + amount;
+        const growth = this.getCompanionGrowth(id);
+        const evolved = growth.level > before;
+        if (evolved) {
+            this.companionRenameUnlocked[id] = growth.level;
+            this.showToast(`✨ 进化为「${growth.label}」，可以改名啦！`);
+            this.showEvolveModal(id, growth);
+        }
+        this.renderCompanionDock();
+        return { growth, evolved };
+    }
+
+    showEvolveModal(id, growth) {
+        const modal = document.getElementById('evolveModal');
+        if (!modal) return;
+        const companion = COMPANIONS.find(c => c.id === id) || COMPANIONS[0];
+        const hero = document.getElementById('evolveHero');
+        const label = document.getElementById('evolveLabel');
+        const lineEn = document.getElementById('evolveLineEn');
+        const lineZh = document.getElementById('evolveLineZh');
+        if (hero) hero.innerHTML = this.getCompanionAvatarHTML(companion, growth.level);
+        if (label) label.textContent = `${this._escapeHtml(growth.name)} · ${growth.label}`;
+        const lines = (COMPANION_LINES[id] || {}).evolve || [];
+        const line = lines.length ? lines[Math.floor(Math.random() * lines.length)] : { en: '', zh: '' };
+        const safeName = this._escapeHtml(growth.name);
+        if (lineEn) lineEn.textContent = line.en.replace(/\{name\}/g, growth.name);
+        if (lineZh) lineZh.textContent = line.zh.replace(/\{name\}/g, growth.name);
+        // 进化弹窗优先，挂起后续 win 弹窗/气泡
+        modal.classList.add('active');
+        this.sound.play('win');
+        this.speakCompanionLine(id, line.en.replace(/\{name\}/g, growth.name));
+        this.spawnConfetti(modal.querySelector('.modal-content'));
+        const btn = document.getElementById('evolveBtn');
+        if (btn) btn.onclick = () => {
+            modal.classList.remove('active');
+            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+                try { window.speechSynthesis.cancel(); } catch(e) {}
+            }
+            const cb = this._afterEvolveClose;
+            this._afterEvolveClose = null;
+            if (cb) cb();
+        };
+    }
+
+    spawnConfetti(host) {
+        if (this.reduceMotion || !host) return;
+        const colors = ['#ff4081','#ff9800','#ffeb3b','#4caf50','#00e5ff','#7c4dff','#ffd700'];
+        for (let i = 0; i < 26; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[i % colors.length];
+            piece.style.animationDuration = (1.1 + Math.random() * 1.1) + 's';
+            piece.style.animationDelay = (Math.random() * 0.35) + 's';
+            host.appendChild(piece);
+            setTimeout(() => piece.remove(), 2800);
+        }
+    }
+
+    getCompanionGrowth(id) {
+        const THRESHOLDS = [0, 3, 8, 16, 28, 45];
+        const MAX = THRESHOLDS.length; // 6
+        const points = this.companionGrowth[id] || 0;
+        let level = 1;
+        for (let i = 0; i < THRESHOLDS.length; i++) {
+            if (points >= THRESHOLDS[i]) level = i + 1;
+        }
+        const labels = {
+            dino: ['幼年探险家','荒野侦察员','远古守护者','烈焰猎手','陨星霸王','创世神龙'],
+            mecha: ['基础机体','重装先锋','苍蓝统帅','量子骑士','虹光战神','永恒守望者'],
+            princess: ['星愿学徒','星辉公主','银河女王','极光仙子','虹羽圣女','永恒星神']
+        };
+        const isMax = level >= MAX;
+        const cur = THRESHOLDS[level - 1];
+        const next = isMax ? THRESHOLDS[MAX - 1] : THRESHOLDS[level];
+        const span = isMax ? 1 : (next - cur);
+        const percent = isMax ? 100 : (points - cur) / span * 100;
+        const labelArr = labels[id] || labels.dino;
+        return {
+            points, level, max: MAX, isMax,
+            next: isMax ? 'MAX' : next,
+            percent: Math.min(100, Math.round(percent)),
+            label: labelArr[Math.min(level, MAX) - 1],
+            name: this.getCompanionName(id)
+        };
+    }
+
+    getCompanionEffectText(id, level) {
+        if (id === 'dino') return `使用后立即增加 ${[5,6,8,9,10,12][level-1]} 步`;
+        if (id === 'mecha') return `接下来 ${[3,4,5,6,7,8][level-1]} 次有效交换不消耗步数`;
+        if (id === 'princess') return `立即补齐 ${[1,1,2,2,3,3][level-1]} 个尚未收集的目标字母`;
+        return '';
+    }
+
+    getCompanionAvatarHTML(companion, level) {
+        return `<div class="companion-avatar ${companion.id} level-${level}">
+            <img class="companion-sprite" src="${companion.image}" alt="${companion.name}">
+        </div>`;
+    }
+
+    getShopPreviewHTML(item) {
+        const sampleColors = ['#005ab5','#009e73','#d81b60','#ff7f00','#7055c7','#00838f'];
+        const letters = ['A','B','C','A','C','B'];
+        let tileClass = '';
+        if (item.id === 'pixel_board') tileClass = ' pixel';
+        else if (item.id === 'metal_board') tileClass = ' metal';
+        else if (item.id === 'ink_board') tileClass = ' ink';
+        else if (item.id === 'crystal_board') tileClass = ' crystal';
+        const miniTiles = letters.map((letter, index) =>
+            `<span class="shop-mini-tile${tileClass}" style="background:${sampleColors[index]}">${letter}</span>`
+        ).join('');
+        const boardBg = item.colors?.board || item.preview;
+        return `<div class="shop-preview" style="background:${item.preview}">
+            <div class="shop-mini-board" style="background:${boardBg}">${miniTiles}</div>
+        </div>`;
+    }
+
+    buyTool(id) {
+        const item = SHOP_ITEMS.find(i => i.id === id && i.type === 'tool');
+        if (!item) return;
+        if (this.coins < item.price) {
+            this.showToast('积分不足!');
+            return;
+        }
+        this.coins -= item.price;
+        if (id === 'review_boost') {
+            this.reviewBoostActive = true;
+            this.showToast('📚 下一次复习奖励已加倍');
+        } else {
+            this.toolInventory[id] = (this.toolInventory[id] || 0) + 1;
+            this.showToast(`🎒 获得道具：${item.name}`);
+        }
+        this.saveGlobal();
+        this.renderShop('tool');
+        this.updateToolUI();
+        this.updateUI();
     }
 
     buySkin(id) {
         const item = SHOP_ITEMS.find(i => i.id === id);
         if (!item || this.unlockedSkins.includes(id)) return;
-        if (this.score < item.price) {
+        if (this.coins < item.price) {
             this.showToast('积分不足!');
             return;
         }
-        this.score -= item.price;
+        this.coins -= item.price;
         this.unlockedSkins.push(id);
         this.equipSkin(id);
         this.showToast(`✨ 解锁: ${item.name}`);
@@ -583,49 +1226,6 @@ class WordMatchGame {
         this.renderShop(item.type);
     }
 
-    buyCharacter(id) {
-        const ch = CHARACTERS.find(c => c.id === id);
-        if (!ch || this.unlockedCharacters.includes(id)) return;
-        if (this.score < ch.price) { this.showToast('积分不足!'); return; }
-        this.score -= ch.price;
-        this.unlockedCharacters.push(id);
-        this.equipCharacter(id);
-        this.showToast(`✨ 解锁角色: ${ch.name}`);
-        this.saveGlobal();
-        this.renderShop('character');
-    }
-
-    equipCharacter(id) {
-        if (!this.unlockedCharacters.includes(id)) return;
-        this.equippedCharacter = id;
-        this.renderCharacterBar();
-        this.saveGlobal();
-        this.renderShop('character');
-    }
-
-    buyItem(id) {
-        const it = CHARACTER_ITEMS.find(i => i.id === id);
-        if (!it) return;
-        if (this.unlockedSkins.includes(id) || this.equippedItem === id) return;
-        if (this.score < it.price) { this.showToast('积分不足!'); return; }
-        this.score -= it.price;
-        this.unlockedSkins.push(id);
-        this.equipItem(id);
-        this.showToast(`✨ 解锁道具: ${it.name}`);
-        this.saveGlobal();
-        this.renderShop('item');
-    }
-
-    equipItem(id) {
-        const it = CHARACTER_ITEMS.find(i => i.id === id);
-        if (!it) return;
-        if (!this.unlockedSkins.includes(id) && this.equippedItem !== id) return;
-        this.equippedItem = id;
-        this.renderCharacterBar();
-        this.saveGlobal();
-        this.renderShop('item');
-    }
-
     updateEquipBar() {
         const bar = document.getElementById('equipBar');
         if (!bar) return;
@@ -633,44 +1233,14 @@ class WordMatchGame {
         const b = SHOP_ITEMS.find(i => i.id === this.equippedBoard);
         const e = SHOP_ITEMS.find(i => i.id === this.equippedEffect);
         const f = SHOP_ITEMS.find(i => i.id === this.equippedFrame);
+        const c = COMPANIONS.find(i => i.id === this.equippedCompanion);
         bar.innerHTML = `
             <span class="equip-tag">🎨 ${t ? t.name : '默认'}</span>
             <span class="equip-tag">🔲 ${b ? b.name : '默认'}</span>
             <span class="equip-tag">✨ ${e ? e.name : '默认'}</span>
             <span class="equip-tag">🏅 ${f ? f.name : '无'}</span>
+            <span class="equip-tag">🎮 ${c ? c.name : '伙伴'}</span>
         `;
-    }
-
-    renderCharacterBar() {
-        const avatar = document.getElementById('characterAvatar');
-        const name = document.getElementById('characterName');
-        const buff = document.getElementById('characterBuff');
-        const slot = document.getElementById('characterItemSlot');
-        if (!avatar || !name || !buff) return;
-        const ch = CHARACTERS.find(c => c.id === this.equippedCharacter);
-        const it = CHARACTER_ITEMS.find(i => i.id === this.equippedItem);
-        if (ch) {
-            avatar.textContent = ch.emoji;
-            name.textContent = ch.name;
-            buff.textContent = ch.desc;
-        }
-        if (slot) {
-            if (it) { slot.textContent = it.emoji; slot.className = 'character-item-slot filled'; slot.title = it.name + ': ' + it.desc; }
-            else { slot.textContent = '+'; slot.className = 'character-item-slot'; slot.title = '道具槽（空）'; }
-        }
-    }
-
-    getEffect(type) {
-        const ch = CHARACTERS.find(c => c.id === this.equippedCharacter);
-        const it = CHARACTER_ITEMS.find(i => i.id === this.equippedItem);
-        let val = 0;
-        if (ch && ch.effect === type) val = ch.value;
-        if (it && it.effect === type) {
-            if (type === 'scoreBonus' || type === 'bombDiscount') val = val ? val * it.value : it.value;
-            else if (type === 'freeShuffle') val = true;
-            else val += it.value;
-        }
-        return val;
     }
 
     applyEquippedTheme() {
@@ -738,8 +1308,7 @@ class WordMatchGame {
         const container = document.getElementById('levelMap');
         if (!container) return;
         container.innerHTML = '';
-        const total = this.wordLevels.length || 1;
-        for (let i = 1; i <= total; i++) {
+        for (let i = 1; i <= 26; i++) {
             const node = document.createElement('div');
             let cls = 'level-node';
             if (i < this.level) cls += ' passed';
@@ -748,172 +1317,6 @@ class WordMatchGame {
             node.className = cls;
             node.textContent = i;
             container.appendChild(node);
-        }
-    }
-
-    loadWordBank() {
-        try {
-            const raw = localStorage.getItem('wordMatchWordBank');
-            this.wordBank = raw ? JSON.parse(raw) : [];
-        } catch(e) { this.wordBank = []; }
-    }
-
-    saveWordBank() {
-        localStorage.setItem('wordMatchWordBank', JSON.stringify(this.wordBank));
-    }
-
-    openWordBank() {
-        document.getElementById('wordBankModal').classList.add('active');
-        this.renderWordBank();
-    }
-
-    closeWordBank() {
-        document.getElementById('wordBankModal').classList.remove('active');
-    }
-
-    renderWordBank() {
-        const list = document.getElementById('wordBankList');
-        if (!list) return;
-        list.innerHTML = '';
-        if (this.wordBank.length === 0) {
-            list.innerHTML = '<div style="text-align:center;color:#888;padding:20px">还没有自定义单词<br>在上方添加</div>';
-        } else {
-            this.wordBank.forEach(w => {
-                const item = document.createElement('div');
-                item.className = 'vocab-item';
-                item.innerHTML = `<div><span class="word-text">${w.en}</span><span class="word-cn">${w.cn}</span></div>
-                    <div class="actions">
-                        <button onclick="game.sound.speak('${w.en}')">🔊</button>
-                        <button onclick="game.removeWordFromBank('${w.en}')">🗑️</button>
-                    </div>`;
-                list.appendChild(item);
-            });
-        }
-    }
-
-    addWordBankFromForm() {
-        const en = document.getElementById('wbEn').value.trim();
-        const cn = document.getElementById('wbCn').value.trim();
-        const s = document.getElementById('wbS').value.trim();
-        const sc = document.getElementById('wbSc').value.trim();
-        if (!en || !cn) { alert('请输入英文单词和中文意思'); return; }
-        if (!/^[A-Za-z]+$/.test(en)) { alert('英文单词只能包含字母'); return; }
-        const upper = en.toUpperCase();
-        if (this.wordBank.find(w => w.en === upper)) { alert('该单词已存在'); return; }
-        this.wordBank.push({ en: upper, cn, s: s || `${upper} is a word.`, sc: sc || cn });
-        this.saveWordBank();
-        this.renderWordBank();
-        document.getElementById('wbEn').value = '';
-        document.getElementById('wbCn').value = '';
-        document.getElementById('wbS').value = '';
-        document.getElementById('wbSc').value = '';
-    }
-
-    removeWordFromBank(en) {
-        this.wordBank = this.wordBank.filter(w => w.en !== en);
-        this.saveWordBank();
-        this.renderWordBank();
-    }
-
-    exportWordBank() {
-        const blob = new Blob([JSON.stringify(this.wordBank, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'word-bank.json';
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    importWordBank(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const data = JSON.parse(e.target.result);
-                if (!Array.isArray(data)) throw new Error('格式错误');
-                const valid = data.filter(w => w.en && w.cn);
-                if (valid.length === 0) throw new Error('没有有效单词');
-                if (confirm(`导入 ${valid.length} 个单词，是否覆盖现有单词库？\n选"确定"覆盖，选"取消"追加`)) {
-                    this.wordBank = valid.map(w => ({...w, en: w.en.toUpperCase()}));
-                } else {
-                    for (let w of valid) {
-                        const upper = w.en.toUpperCase();
-                        if (!this.wordBank.find(x => x.en === upper)) this.wordBank.push({...w, en: upper});
-                    }
-                }
-                this.saveWordBank();
-                this.renderWordBank();
-                this.showToast(`成功导入 ${valid.length} 个单词`);
-            } catch (err) {
-                alert('导入失败: ' + err.message);
-            }
-            event.target.value = '';
-        };
-        reader.readAsText(file);
-    }
-
-    loadDailySave() {
-        try {
-            const raw = localStorage.getItem('wordMatchDaily');
-            if (raw) this.dailyBest = JSON.parse(raw);
-        } catch(e) { this.dailyBest = null; }
-    }
-
-    saveDaily(best) {
-        this.dailyBest = best;
-        localStorage.setItem('wordMatchDaily', JSON.stringify(best));
-    }
-
-    getDailyWord() {
-        if (!this.wordLevels.length) return null;
-        const all = this.wordLevels.flat();
-        const dateStr = new Date().toISOString().slice(0,10);
-        let hash = 0;
-        for (let i = 0; i < dateStr.length; i++) hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
-        const index = Math.abs(hash) % all.length;
-        return { word: all[index], date: dateStr };
-    }
-
-    renderDailyChallenge() {
-        const daily = this.getDailyWord();
-        const banner = document.getElementById('dailyChallengeBanner');
-        const preview = document.getElementById('dailyWordPreview');
-        const bestEl = document.getElementById('dailyBestScore');
-        if (!banner) return;
-        if (!daily) {
-            banner.style.display = 'none';
-            return;
-        }
-        banner.style.display = 'block';
-        if (preview) preview.textContent = daily.word.en;
-        const best = this.dailyBest && this.dailyBest.date === daily.date ? this.dailyBest.score : 0;
-        if (bestEl) bestEl.textContent = best;
-    }
-
-    startDailyChallenge() {
-        const daily = this.getDailyWord();
-        if (!daily) return;
-        this.targetWord = daily.word.en;
-        this.targetChinese = daily.word.cn;
-        this.targetSentence = daily.word.s;
-        this.targetSentenceCn = daily.word.sc || '';
-        this.collectedLetters = {};
-        for (let ch of this.targetWord) this.collectedLetters[ch] = 0;
-        this.moves = Math.floor(this.targetWord.length * 3.5 + 10);
-        this.bombMode = false;
-        this.bombSelected = [];
-        this.generateBoard();
-        this.renderBoard();
-        this.updateUI();
-        this.startAutoHint();
-        this.initialMoves = this.moves;
-        this.applyTheme();
-        const dailyInfo = document.getElementById('dailyInfo');
-        if (dailyInfo) {
-            const best = this.dailyBest && this.dailyBest.date === daily.date ? this.dailyBest.score : 0;
-            dailyInfo.textContent = `今日单词 · 最佳 ${best}`;
         }
     }
 
@@ -932,35 +1335,26 @@ class WordMatchGame {
         this.sound.ensureContext();
         if (window.speechSynthesis) {
             this.sound.initVoices();
-            // iOS Safari 必须在用户手势里 speak 一次才能解锁后续 TTS
-            const empty = new SpeechSynthesisUtterance(' ');
-            empty.volume = 0.01;
-            empty.rate = 2;
+            // 用一个空 utterance 解锁移动端 speech synthesis
+            const empty = new SpeechSynthesisUtterance('');
+            empty.volume = 0;
             try { window.speechSynthesis.speak(empty); } catch(e){}
         }
     }
 
     selectMode(mode) {
         this.unlockAudio();
+        this.markPlayDay();
+        this.saveGlobal();
         this.gameMode = mode;
+        document.body.classList.add('in-game');
         document.getElementById('startScreen').style.display = 'none';
         document.getElementById('gameScreen').style.display = 'block';
-        if (mode === 'daily') {
-            this.startDailyChallenge();
-        } else {
-            this.startGame();
-        }
+        this.startGame();
     }
 
     backToMenu() {
-        const inProgress = this.gameMode !== 'endless' &&
-            document.getElementById('gameScreen').style.display !== 'none' &&
-            this.initialMoves !== undefined &&
-            this.moves < this.initialMoves &&
-            !this.isWin();
-        if (inProgress) {
-            if (!confirm('当前游戏正在进行中，确定要退出吗？')) return;
-        }
+        this.locked = false;
         clearInterval(this.timedTimer);
         clearTimeout(this.autoHintTimer);
         this.bombMode = false;
@@ -969,14 +1363,16 @@ class WordMatchGame {
         document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'block';
+        document.body.classList.remove('in-game');
         this.updateGlobalStats();
         this.updateEquipBar();
-        this.renderDailyChallenge();
     }
 
     startGame() {
-        this.selectedTile = null; this.isProcessing = false;
-        this.renderCharacterBar();
+        this.selectedTile = null; this.isProcessing = false; this.locked = false;
+        this.score = 0;
+        clearInterval(this.timedTimer);
+        clearTimeout(this.autoHintTimer);
         document.getElementById('modal').classList.remove('active');
 
         if (this.gameMode === 'story') {
@@ -986,7 +1382,8 @@ class WordMatchGame {
             this.updateUI();
             this.startAutoHint();
         } else if (this.gameMode === 'timed') {
-            this.timeLeft = 60 + this.getEffect('timeBonus');
+            this.timeLeft = 60;
+            this.endlessWords = 0;
             this.loadRandomWord();
             this.generateBoard();
             this.renderBoard();
@@ -1006,10 +1403,16 @@ class WordMatchGame {
             this.renderBoard();
             this.updateUI();
             this.startAutoHint();
+        } else if (this.gameMode === 'daily') {
+            this.loadDailyChallenge();
+            this.generateBoard();
+            this.renderBoard();
+            this.updateUI();
+            this.startAutoHint();
         }
 
-        this.initialMoves = this.moves;
         this.applyTheme();
+        this.greetCompanion();
     }
 
     applyTheme() {
@@ -1036,22 +1439,13 @@ class WordMatchGame {
     }
 
     loadLevel() {
-        const idx = Math.min(this.level - 1, this.wordLevels.length - 1);
-        const group = this.wordLevels[idx];
-        if (!group || group.length === 0) {
-            console.error('No words for level', this.level);
-            alert('加载关卡数据失败，请检查 words.json 文件');
-            this.backToMenu();
-            return;
-        }
+        const group = this.wordLevels[Math.min(this.level - 1, this.wordLevels.length - 1)];
         const shuffled = [...group].sort(() => Math.random() - 0.5);
         this.targetWords = shuffled.slice(0, Math.min(3, shuffled.length));
         this.currentWordIndex = 0;
         this.setCurrentTarget(0);
         const avgLen = this.targetWords.reduce((sum, w) => sum + w.en.length, 0) / this.targetWords.length;
-        this.moves = Math.floor((avgLen * 4 + 12 + Math.floor(this.level / 2)) * 2.2);
-        const extra = this.getEffect('extraMoves');
-        if (extra) this.moves += extra;
+        this.moves = Math.floor((avgLen * 4 + 12 + Math.floor(this.level / 2)) * 1.6);
         this.levelResetCount = 0;
         this.levelBombsUsed = 0;
         this.boardSize = this.level >= 15 ? 7 : 6;
@@ -1067,6 +1461,7 @@ class WordMatchGame {
         for (let ch of this.targetWord) this.collectedLetters[ch] = 0;
         this.bombMode = false;
         this.bombSelected = [];
+        this.letterColorMap = {};
     }
 
     loadRandomWord() {
@@ -1078,9 +1473,6 @@ class WordMatchGame {
         } else {
             pool = this.wordLevels.flat();
         }
-        if (this.wordBank.length > 0) {
-            pool = pool.concat(this.wordBank);
-        }
         const wordObj = pool[Math.floor(Math.random() * pool.length)];
         this.targetWord = wordObj.en;
         this.targetChinese = wordObj.cn;
@@ -1091,8 +1483,7 @@ class WordMatchGame {
         this.moves = 999;
         this.bombMode = false;
         this.bombSelected = [];
-        this.targetWords = null;
-        this.currentWordIndex = 0;
+        this.letterColorMap = {};
     }
 
     loadReviewWord() {
@@ -1101,7 +1492,11 @@ class WordMatchGame {
             this.backToMenu();
             return;
         }
-        const pool = [...this.learnedWords].sort(() => Math.random() - 0.5);
+        const pool = [...this.learnedWords].sort((a, b) => {
+            const ma = this.getMasteryInfo(a.en).score;
+            const mb = this.getMasteryInfo(b.en).score;
+            return ma - mb || Math.random() - 0.5;
+        });
         this.targetWords = pool.slice(0, Math.min(3, pool.length));
         this.currentWordIndex = 0;
         this.setCurrentTarget(0);
@@ -1109,21 +1504,36 @@ class WordMatchGame {
         this.moves = Math.floor((avgLen * 3 + 12) * 2.2);
     }
 
+    loadDailyChallenge() {
+        const today = this.getDateKey();
+        this.dailyDate = today;
+        const daySeed = this.hashString(today);
+        const levelIndex = daySeed % this.wordLevels.length;
+        this.dailyLevelIndex = levelIndex;
+        const pool = this.wordLevels[levelIndex];
+        this.targetWords = this.seededPick(pool, Math.min(3, pool.length), daySeed);
+        this.currentWordIndex = 0;
+        this.setCurrentTarget(0);
+        const avgLen = this.targetWords.reduce((sum, w) => sum + w.en.length, 0) / this.targetWords.length;
+        this.moves = Math.floor((avgLen * 4 + 18) * 2.1);
+        this.levelResetCount = 0;
+        this.levelBombsUsed = 0;
+        this.boardSize = levelIndex >= 14 ? 7 : 6;
+    }
+
     getLetterPool() {
         const target = [...new Set(this.targetWord.split(''))];
-        let extras = ['X', 'Y', 'Z', 'Q', 'J', 'V'];
-        if (this.gameMode === 'story') {
-            if (this.level >= 11) extras.push('K', 'W');
-            if (this.level >= 16) extras.push('F', 'H');
-            if (this.level >= 21) extras.push('M', 'P');
+        let extras = ['X', 'Y', 'Z'];
+        if (this.gameMode === 'story' || this.gameMode === 'daily') {
+            const difficulty = this.gameMode === 'daily' ? (this.dailyLevelIndex || 0) + 1 : this.level;
+            if (difficulty >= 6) extras.push('Q', 'J');
+            if (difficulty >= 11) extras.push('V', 'K');
+            if (difficulty >= 16) extras.push('W', 'F');
+            if (difficulty >= 21) extras.push('H', 'M');
         } else if (this.gameMode === 'endless') {
-            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W'];
-            if (this.endlessDifficulty > 2) extras.push('F', 'H');
-            if (this.endlessDifficulty > 4) extras.push('M', 'P');
-        } else if (this.gameMode === 'timed') {
-            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W', 'F', 'H'];
-        } else if (this.gameMode === 'review') {
-            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V', 'K', 'W'];
+            extras = ['X', 'Y', 'Z', 'Q', 'J', 'V'];
+            if (this.endlessDifficulty > 2) extras.push('K', 'W');
+            if (this.endlessDifficulty > 4) extras.push('F', 'H');
         }
         const pool = [...target];
         for (let e of extras) if (!target.includes(e)) pool.push(e);
@@ -1140,10 +1550,7 @@ class WordMatchGame {
         return 0.35;
     }
 
-    generateBoard(attempts = 0) {
-        if (attempts > 100) {
-            console.warn('generateBoard: max attempts reached, forcing valid board');
-        }
+    generateBoard(_depth) {
         const pool = this.getLetterPool();
         const targetSet = new Set(this.targetWord.split(''));
         const targetWeight = this.getTargetWeight();
@@ -1160,56 +1567,28 @@ class WordMatchGame {
             }
         }
         this.removeInitialMatches();
-        if (!this.hasAnyValidMove() && attempts <= 100) this.generateBoard(attempts + 1);
-        this.assignLetterColors();
-    }
-
-    assignLetterColors() {
-        const freq = {};
-        for (let r = 0; r < this.boardSize; r++) {
-            for (let c = 0; c < this.boardSize; c++) {
-                const ch = this.board[r][c];
-                freq[ch] = (freq[ch] || 0) + 1;
-            }
-        }
-        const sorted = Object.keys(freq).sort((a, b) => freq[b] - freq[a]);
-        this.letterColorMap = {};
-        sorted.forEach((letter, i) => {
-            this.letterColorMap[letter] = i % 12;
-        });
+        if (!this.hasAnyValidMove() && (_depth || 0) < 20) return this.generateBoard((_depth || 0) + 1);
+        this.buildLetterColorMap();
     }
 
     removeInitialMatches() {
-        let has = true;
-        while (has) {
+        let has = true, guard = 0;
+        while (has && guard++ < 200) {
             const m = this.findMatches();
             if (m.length === 0) { has = false; continue; }
             for (let match of m) {
                 const pool = this.getLetterPool();
-                let nl;
-                do { nl = pool[Math.floor(Math.random() * pool.length)]; }
-                while (
+                let nl, tries = 0;
+                do { nl = pool[Math.floor(Math.random() * pool.length)]; tries++; }
+                while (tries < 40 && (
                     (match.r > 0 && this.board[match.r - 1][match.c] === nl) ||
                     (match.r < this.boardSize - 1 && this.board[match.r + 1][match.c] === nl) ||
                     (match.c > 0 && this.board[match.r][match.c - 1] === nl) ||
                     (match.c < this.boardSize - 1 && this.board[match.r][match.c + 1] === nl)
-                );
+                ));
                 this.board[match.r][match.c] = nl;
             }
         }
-    }
-
-    hasMatchAt(r, c) {
-        const ch = this.board[r][c];
-        if (!ch) return false;
-        let count = 1;
-        for (let i = c - 1; i >= 0 && this.board[r][i] === ch; i--) count++;
-        for (let i = c + 1; i < this.boardSize && this.board[r][i] === ch; i++) count++;
-        if (count >= 3) return true;
-        count = 1;
-        for (let i = r - 1; i >= 0 && this.board[i][c] === ch; i--) count++;
-        for (let i = r + 1; i < this.boardSize && this.board[i][c] === ch; i++) count++;
-        return count >= 3;
     }
 
     hasAnyValidMove() {
@@ -1217,15 +1596,13 @@ class WordMatchGame {
             for (let c = 0; c < this.boardSize; c++) {
                 if (c < this.boardSize - 1) {
                     this.swap(r, c, r, c + 1);
-                    const ok = this.hasMatchAt(r, c) || this.hasMatchAt(r, c + 1);
+                    if (this.findMatches().length > 0) { this.swap(r, c, r, c + 1); return true; }
                     this.swap(r, c, r, c + 1);
-                    if (ok) return true;
                 }
                 if (r < this.boardSize - 1) {
                     this.swap(r, c, r + 1, c);
-                    const ok = this.hasMatchAt(r, c) || this.hasMatchAt(r + 1, c);
+                    if (this.findMatches().length > 0) { this.swap(r, c, r + 1, c); return true; }
                     this.swap(r, c, r + 1, c);
-                    if (ok) return true;
                 }
             }
         }
@@ -1252,8 +1629,7 @@ class WordMatchGame {
             for (let c = 0; c < this.boardSize; c++) {
                 const key = `${r},${c}`;
                 const letter = this.board[r][c];
-                const colorIdx = this.letterColorMap[letter] || 0;
-                const cls = 'tile-color-' + colorIdx;
+                const cls = 'tile-' + letter.toLowerCase();
                 let skinCls = '';
                 if (boardSkin === 'crystal_board') skinCls = ' tile-crystal';
                 else if (boardSkin === 'pixel_board') skinCls = ' tile-pixel';
@@ -1265,12 +1641,14 @@ class WordMatchGame {
                 if (tile) {
                     if (tile.textContent !== letter) tile.textContent = letter;
                     if (tile.className !== fullClass) tile.className = fullClass;
+                    this.applyTileColor(tile, letter);
                     delete existing[key];
                 } else {
                     tile = document.createElement('div');
                     tile.className = fullClass;
                     tile.textContent = letter;
                     tile.dataset.r = r; tile.dataset.c = c;
+                    this.applyTileColor(tile, letter);
                     el.appendChild(tile);
                 }
             }
@@ -1292,12 +1670,21 @@ class WordMatchGame {
             const have = (this.collectedLetters[ch] || 0) >= got[ch];
             slot.className = `letter-slot ${have ? 'collected' : 'pending'}`;
             slot.textContent = have ? ch : '?';
+            slot.dataset.letter = ch;
+            slot.dataset.occurrence = got[ch] - 1;
             el.appendChild(slot);
         }
         let total = 0, have = 0;
         for (let ch in needed) { total += needed[ch]; have += Math.min(this.collectedLetters[ch] || 0, needed[ch]); }
-        document.getElementById('progressFill').style.width = (have / total * 100) + '%';
+        const progress = Math.round(have / total * 100);
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('wordProgressText').textContent = progress + '%';
         document.getElementById('chineseMeaning').textContent = this.targetChinese;
+        const mastery = this.getMasteryInfo(this.targetWord);
+        const masteryFill = document.getElementById('targetMasteryFill');
+        if (masteryFill) masteryFill.style.width = mastery.percent + '%';
+        const masteryText = document.getElementById('targetMasteryText');
+        if (masteryText) masteryText.textContent = mastery.percent + '%';
         const totalWords = this.targetWords ? this.targetWords.length : 1;
         const current = this.currentWordIndex !== undefined ? this.currentWordIndex + 1 : 1;
         document.getElementById('targetLabel').textContent = `目标单词 (${current}/${totalWords})`;
@@ -1306,7 +1693,7 @@ class WordMatchGame {
     handleClick(r, c) {
         this.resetAutoHint();
         this.unlockAudio();
-        if (this.isProcessing) return;
+        if (this.isProcessing || this.locked) return;
         if (this.gameMode !== 'endless' && this.moves <= 0 && !this.bombMode) return;
         if (this.bombMode) { this.handleBombClick(r, c); return; }
         this.clearHint();
@@ -1328,23 +1715,14 @@ class WordMatchGame {
     activateBomb() {
         this.resetAutoHint();
         this.unlockAudio();
-        if (this.bombMode) { this.cancelBomb(); return; }
-        if (this.bombs <= 0 || this.isProcessing) return;
+        if (this.bombs <= 0 || this.bombMode || this.isProcessing) return;
         this.levelBombsUsed++;
         this.bombMode = true;
         this.bombSelected = [];
-        const remain = this.nextBombAt - this.score;
+        const remain = this.nextBombAt - this.coins;
         const hint = remain > 0 ? `(再得 ${remain} 分兑换下一颗)` : '';
         this.showToast(`💣 炸弹模式：点击棋盘上的3个字母进行消除 ${hint}`);
         document.getElementById('gameBoard').style.cursor = 'crosshair';
-    }
-
-    cancelBomb() {
-        this.bombMode = false;
-        this.bombSelected = [];
-        document.getElementById('gameBoard').style.cursor = '';
-        document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
-        this.showToast('已取消炸弹模式');
     }
 
     async handleBombClick(r, c) {
@@ -1373,13 +1751,61 @@ class WordMatchGame {
         }
     }
 
-    async trySwap(r1, c1, r2, c2) {
-        this.isProcessing = true;
+    animateSwap(r1, c1, r2, c2) {
+        const el1 = document.querySelector(`[data-r="${r1}"][data-c="${c1}"]`);
+        const el2 = document.querySelector(`[data-r="${r2}"][data-c="${c2}"]`);
+        if (this.reduceMotion || !el1 || !el2) {
+            this.swap(r1, c1, r2, c2);
+            this.renderBoard();
+            return Promise.resolve();
+        }
+        const a = el1.getBoundingClientRect();
+        const b = el2.getBoundingClientRect();
+        const dx = b.left - a.left, dy = b.top - a.top;
+        // 落到最终态（节点按坐标复用，字母已互换）
         this.swap(r1, c1, r2, c2);
         this.renderBoard();
+        const n1 = document.querySelector(`[data-r="${r1}"][data-c="${c1}"]`);
+        const n2 = document.querySelector(`[data-r="${r2}"][data-c="${c2}"]`);
+        if (!n1 || !n2) return Promise.resolve();
+        // Invert：先把两枚棋子摆回交换前的视觉位置
+        n1.style.transition = 'none';
+        n2.style.transition = 'none';
+        n1.style.zIndex = '5';
+        n2.style.zIndex = '5';
+        n1.style.transform = `translate(${dx}px, ${dy}px)`;
+        n2.style.transform = `translate(${-dx}px, ${-dy}px)`;
+        // Play：下一帧滑回真实位置
+        return new Promise(resolve => {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                n1.style.transition = 'transform 0.15s ease';
+                n2.style.transition = 'transform 0.15s ease';
+                n1.style.transform = '';
+                n2.style.transform = '';
+                setTimeout(() => {
+                    [n1, n2].forEach(n => {
+                        n.style.transition = '';
+                        n.style.zIndex = '';
+                    });
+                    resolve();
+                }, 160);
+            }));
+        });
+    }
+
+    async trySwap(r1, c1, r2, c2) {
+        this.isProcessing = true;
+        await this.animateSwap(r1, c1, r2, c2);
         const matches = this.findMatches();
         if (matches.length > 0) {
-            if (this.gameMode !== 'endless') this.moves--;
+            if (this.gameMode !== 'endless') {
+                if (this.mechaShieldMoves > 0) {
+                    this.mechaShieldMoves--;
+                    this.showToast(`🛡️ 机甲护盾生效，剩余 ${this.mechaShieldMoves} 步`);
+                } else {
+                    this.moves--;
+                }
+            }
             this.sound.play('swap');
             await this.processMatches(matches);
             this.checkWin();
@@ -1429,41 +1855,31 @@ class WordMatchGame {
     }
 
     spawnParticles(x, y, color) {
+        if (this.reduceMotion) return;
         const container = document.getElementById('boardContainer');
         const effect = this.equippedEffect;
         const count = effect === 'rainbow_effect' ? 12 : 8;
         for (let i = 0; i < count; i++) {
-            let p = this.particlePool.pop();
-            if (!p) {
-                p = document.createElement('div');
-                p.style.position = 'absolute';
-                p.style.pointerEvents = 'none';
-                p.style.zIndex = '40';
-            }
-            p.style.display = '';
+            const p = document.createElement('div');
             p.style.left = x + 'px';
             p.style.top = y + 'px';
-            p.style.transform = '';
-            p.style.opacity = '';
-            p.style.filter = '';
-            p.style.transition = '';
+            p.style.position = 'absolute';
+            p.style.pointerEvents = 'none';
+            p.style.zIndex = '40';
             const angle = (Math.PI * 2 * i) / count;
             const dist = 30 + Math.random() * 30;
             p.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
             p.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
             if (effect === 'star_effect') {
-                p.className = '';
                 p.innerHTML = '⭐';
                 p.style.fontSize = '14px';
                 p.style.animation = 'particleBurst 0.8s ease forwards';
             } else if (effect === 'heart_effect') {
-                p.className = '';
                 p.innerHTML = '💗';
                 p.style.fontSize = '14px';
                 p.style.animation = 'particleBurst 1s ease forwards';
             } else if (effect === 'paper_effect') {
                 p.className = 'particle';
-                p.innerHTML = '';
                 p.style.width = '8px';
                 p.style.height = '5px';
                 p.style.borderRadius = '0';
@@ -1471,7 +1887,6 @@ class WordMatchGame {
                 p.style.animation = 'particleBurst 1.2s ease forwards';
             } else if (effect === 'rainbow_effect') {
                 p.className = 'particle';
-                p.innerHTML = '';
                 p.style.width = '8px';
                 p.style.height = '8px';
                 p.style.borderRadius = '50%';
@@ -1481,17 +1896,11 @@ class WordMatchGame {
                 p.style.filter = 'drop-shadow(0 0 4px currentColor)';
             } else {
                 p.className = 'particle';
-                p.innerHTML = '';
                 p.style.background = color;
                 p.style.animation = 'particleBurst 0.8s ease forwards';
             }
             container.appendChild(p);
-            const duration = effect === 'paper_effect' ? 1200 : 1000;
-            setTimeout(() => {
-                if (p.parentNode) p.parentNode.removeChild(p);
-                p.style.display = 'none';
-                this.particlePool.push(p);
-            }, duration);
+            setTimeout(() => p.remove(), effect === 'paper_effect' ? 1200 : 1000);
         }
     }
 
@@ -1499,11 +1908,40 @@ class WordMatchGame {
         const container = document.getElementById('boardContainer');
         const el = document.createElement('div');
         el.className = 'score-popup';
-        el.textContent = '+' + score;
+        el.textContent = '+' + Math.round(score);
         el.style.left = x + 'px';
         el.style.top = y + 'px';
         container.appendChild(el);
         setTimeout(() => el.remove(), 1000);
+    }
+
+    flyLetterToTarget(r, c, letter, occurrence) {
+        if (this.reduceMotion) return;
+        const tile = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+        const slot = document.querySelector(`.letter-slot[data-letter="${letter}"][data-occurrence="${occurrence}"]`);
+        if (!tile || !slot) return;
+        const tileRect = tile.getBoundingClientRect();
+        const slotRect = slot.getBoundingClientRect();
+        const flyer = document.createElement('div');
+        flyer.className = 'letter-fly';
+        flyer.textContent = letter;
+        flyer.style.left = tileRect.left + 'px';
+        flyer.style.top = tileRect.top + 'px';
+        flyer.style.width = tileRect.width + 'px';
+        flyer.style.height = tileRect.height + 'px';
+        flyer.style.background = getComputedStyle(tile).background;
+        flyer.style.color = getComputedStyle(tile).color;
+        flyer.style.border = getComputedStyle(tile).border;
+        flyer.style.setProperty('--fly-x', (slotRect.left + slotRect.width / 2 - tileRect.left - tileRect.width / 2) + 'px');
+        flyer.style.setProperty('--fly-y', (slotRect.top + slotRect.height / 2 - tileRect.top - tileRect.height / 2) + 'px');
+        document.body.appendChild(flyer);
+        setTimeout(() => {
+            flyer.remove();
+            const arrivedSlot = document.querySelector(`.letter-slot[data-letter="${letter}"][data-occurrence="${occurrence}"]`);
+            if (!arrivedSlot) return;
+            arrivedSlot.classList.add('arriving');
+            setTimeout(() => arrivedSlot.classList.remove('arriving'), 450);
+        }, 550);
     }
 
     async processMatches(matches) {
@@ -1516,15 +1954,14 @@ class WordMatchGame {
                     const need = this.targetWord.split(m.letter).length - 1;
                     if (this.collectedLetters[m.letter] < need) {
                         this.collectedLetters[m.letter]++;
+                        this.flyLetterToTarget(m.r, m.c, m.letter, this.collectedLetters[m.letter] - 1);
                         collectedAny = true;
                     }
                 }
             }
             if (collectedAny) this.sound.play('collect');
             this.sound.play('match');
-            let pts = matches.length * 10 * combo;
-            const bonus = this.getEffect('scoreBonus');
-            if (bonus) pts = Math.floor(pts * bonus);
+            const pts = matches.length * 10 * combo;
             this.score += pts;
 
             for (let m of matches) {
@@ -1534,15 +1971,22 @@ class WordMatchGame {
                     const rect = t.getBoundingClientRect();
                     const containerRect = document.getElementById('boardContainer').getBoundingClientRect();
                     this.spawnParticles(rect.left - containerRect.left + rect.width / 2, rect.top - containerRect.top + rect.height / 2, getComputedStyle(t).background);
-                    this.spawnScorePopup(rect.left - containerRect.left, rect.top - containerRect.top, pts / matches.length);
+                    this.spawnScorePopup(rect.left - containerRect.left + rect.width / 2, rect.top - containerRect.top, pts / matches.length);
                 }
             }
             if (combo > 1) {
                 const el = document.createElement('div');
                 el.className = 'combo-indicator';
-                el.textContent = combo + ' COMBO!';
+                el.textContent = `Combo ×${combo}`;
                 document.getElementById('gameBoard').appendChild(el);
                 setTimeout(() => el.remove(), 800);
+                if (!this.reduceMotion) {
+                    const board = document.getElementById('gameBoard');
+                    board.classList.remove('combo-shake');
+                    void board.offsetWidth;
+                    board.classList.add('combo-shake');
+                    setTimeout(() => board.classList.remove('combo-shake'), 280);
+                }
             }
             await new Promise(r => setTimeout(r, 400));
             this.removeAndFill(matches);
@@ -1552,14 +1996,8 @@ class WordMatchGame {
             matches = this.findMatches();
         }
         if (matches.length === 0 && !this.hasAnyValidMove()) {
-            let attempts = 0;
-            do {
-                this.autoShuffle();
-                attempts++;
-            } while (!this.hasAnyValidMove() && attempts < 30);
-            if (!this.hasAnyValidMove()) this.generateBoard();
+            this.generateBoard();
             this.renderBoard();
-            this.showToast('🔀 棋盘已自动重排');
         }
         this.renderTarget();
         this.checkBombReward();
@@ -1586,6 +2024,7 @@ class WordMatchGame {
                 wr--;
             }
         }
+        this.buildLetterColorMap();
     }
 
     isWin() {
@@ -1597,95 +2036,160 @@ class WordMatchGame {
 
     checkWin() {
         if (this.isWin()) {
+            this.locked = true;
             this.addLearnedWord();
             if (this.gameMode === 'story') {
                 if (this.currentWordIndex < this.targetWords.length - 1) {
-                    this.score += 50 + this.targetWord.length * 20;
+                    const reward = 50 + this.targetWord.length * 20;
+                    this.score += reward;
+                    this.coins += reward;
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    this.isProcessing = true;
-                    setTimeout(() => { this.isProcessing = false; this.showWordComplete(); }, 400);
+                    setTimeout(() => this.showWordComplete(), 400);
                 } else {
-                    this.score += this.moves * 50;
+                    const reward = this.moves * 50;
+                    this.score += reward;
+                    this.coins += reward;
+                    const bond = this.gainCompanionBond(this.equippedCompanion, 1);
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
                     if (this.levelBombsUsed === 0) this.unlockAchievement('zero_bomb');
                     if (this.levelResetCount === 0) this.unlockAchievement('perfect_level');
-                    if (this.level >= this.wordLevels.length) this.unlockAchievement('master');
-                    this.isProcessing = true;
-                    setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
+                    if (this.level >= 26) this.unlockAchievement('master');
+                    this.queueWinPresentation(this.equippedCompanion, bond);
                 }
             } else if (this.gameMode === 'timed') {
+                this.endlessWords++;
                 this.score += 100 + this.targetWord.length * 50;
-                this.checkBombReward();
+                if (this.endlessWords > this.bestTimedWords) {
+                    this.bestTimedWords = this.endlessWords;
+                    this.coins += 80;
+                    this.checkBombReward();
+                }
+                this.saveGlobal();
                 this.updateTimedUI();
                 this.sound.play('win');
                 this.sound.speak(this.targetWord + '. ' + this.targetSentence);
-                this.isProcessing = true;
                 setTimeout(() => {
                     this.loadRandomWord();
                     this.generateBoard();
                     this.renderBoard();
-                    this.isProcessing = false;
+                    this.locked = false;
                 }, 500);
             } else if (this.gameMode === 'endless') {
                 this.endlessWords++;
                 this.score += 100 + this.targetWord.length * 30;
+                if (this.endlessWords > this.bestEndlessWords) {
+                    this.bestEndlessWords = this.endlessWords;
+                    this.coins += 80;
+                    this.checkBombReward();
+                }
                 if (this.endlessWords % 3 === 0) this.endlessDifficulty++;
-                this.checkBombReward();
+                this.saveGlobal();
                 this.updateEndlessUI();
                 this.sound.play('win');
                 this.sound.speak(this.targetWord + '. ' + this.targetSentence);
-                this.isProcessing = true;
                 setTimeout(() => {
                     this.loadRandomWord();
                     this.generateBoard();
                     this.renderBoard();
                     this.applyTheme();
-                    this.isProcessing = false;
+                    this.locked = false;
                 }, 500);
             } else if (this.gameMode === 'review') {
+                const rewardMultiplier = this.reviewBoostActive ? 2 : 1;
                 if (this.currentWordIndex < this.targetWords.length - 1) {
-                    this.score += 30;
+                    this.score += 30 * rewardMultiplier;
+                    this.coins += 30 * rewardMultiplier;
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    this.isProcessing = true;
-                    setTimeout(() => { this.isProcessing = false; this.showWordComplete(); }, 400);
+                    setTimeout(() => this.showWordComplete(), 400);
                 } else {
-                    this.score += 50;
+                    this.score += 50 * rewardMultiplier;
+                    this.coins += 50 * rewardMultiplier;
+                    const bond = this.gainCompanionBond(this.equippedCompanion, 1);
+                    this.reviewBoostActive = false;
                     this.checkBombReward();
                     this.saveGlobal();
                     this.updateUI();
                     this.sound.play('win');
-                    this.isProcessing = true;
-                    setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
+                    this.queueWinPresentation(this.equippedCompanion, bond);
                 }
             } else if (this.gameMode === 'daily') {
-                this.score += this.moves * 50;
-                this.checkBombReward();
-                this.saveGlobal();
-                this.updateUI();
-                this.sound.play('win');
-                const daily = this.getDailyWord();
-                const currentBest = this.dailyBest && this.dailyBest.date === daily.date ? this.dailyBest.score : 0;
-                if (this.score > currentBest) {
-                    this.saveDaily({ date: daily.date, score: this.score, word: this.targetWord });
+                if (this.currentWordIndex < this.targetWords.length - 1) {
+                    const reward = 80 + this.targetWord.length * 25;
+                    this.score += reward;
+                    this.coins += reward;
+                    this.checkBombReward();
+                    this.saveGlobal();
+                    this.updateUI();
+                    this.sound.play('win');
+                    setTimeout(() => this.showWordComplete(), 400);
+                } else {
+                    const today = this.dailyDate || this.getDateKey();
+                    const firstTime = !this.dailyCompletions[today];
+                    this.dailyCompletions[today] = true;
+                    this.lastDailyReward = firstTime ? 800 : 200;
+                    this.score += this.lastDailyReward;
+                    this.coins += this.lastDailyReward;
+                    // 当日首次完成学习：额外羁绊（+2 而非 +1），每日仅一次由 dailyCompletions 天然防重
+                    const bond = this.gainCompanionBond(this.equippedCompanion, firstTime ? 2 : 1);
+                    this.checkBombReward();
+                    this.saveGlobal();
+                    this.updateUI();
+                    this.sound.play('win');
+                    this.queueWinPresentation(this.equippedCompanion, bond);
                 }
-                this.isProcessing = true;
-                setTimeout(() => { this.isProcessing = false; this.showModal('win'); }, 400);
             }
         }
+    }
+
+    getMasteryInfo(word) {
+        const data = this.wordMastery[word] || { correct: 0, fail: 0, review: 0 };
+        const rawScore = Math.max(0, (data.correct || 0) * 2 + (data.review || 0) * 2 - (data.fail || 0));
+        const days = data.lastSeen ? (Date.now() - data.lastSeen) / 86400000 : 0;
+        const decay = Math.min(rawScore, Math.floor(days / 3));
+        const score = Math.max(0, rawScore - decay);
+        const percent = Math.max(0, Math.min(100,
+            (data.correct || 0) * 18 +
+            (data.review || 0) * 22 -
+            (data.fail || 0) * 8 -
+            decay * 6
+        ));
+        const levels = [
+            { name: '初见', icon: '🌱', min: 0 },
+            { name: '认识', icon: '🌿', min: 2 },
+            { name: '熟悉', icon: '🌼', min: 5 },
+            { name: '掌握', icon: '🌟', min: 9 },
+            { name: '已巩固', icon: '🏆', min: 14 }
+        ];
+        let level = levels[0];
+        for (const item of levels) {
+            if (score >= item.min) level = item;
+        }
+        return { ...data, score, ...level, percent };
+    }
+
+    updateMastery(word, type) {
+        const data = this.wordMastery[word] || { correct: 0, fail: 0, review: 0, lastSeen: 0 };
+        if (type === 'correct') data.correct = (data.correct || 0) + 1;
+        if (type === 'fail') data.fail = (data.fail || 0) + 1;
+        if (type === 'review') data.review = (data.review || 0) + 1;
+        data.lastSeen = Date.now();
+        this.wordMastery[word] = data;
     }
 
     addLearnedWord() {
         const wordObj = { en: this.targetWord, cn: this.targetChinese, s: this.targetSentence, sc: this.targetSentenceCn };
         const exists = this.learnedWords.find(w => w.en === this.targetWord);
+        this.totalCompletedWords++;
+        this.updateMastery(this.targetWord, this.gameMode === 'review' ? 'review' : 'correct');
         if (!exists) {
             this.learnedWords.push(wordObj);
             this.unlockAchievement('first_word');
@@ -1702,11 +2206,16 @@ class WordMatchGame {
         const sentenceBox = document.getElementById('sentenceBox');
 
         icon.textContent = '✅';
-        title.textContent = `单词 ${this.currentWordIndex + 1}/${this.targetWords.length} 完成!`;
-        text.textContent = `你成功拼出了 "${this.targetWord}" (${this.targetChinese})!\n准备挑战下一个单词`;
+        title.textContent = `${this.targetWord} · ${this.targetChinese}`;
+        text.textContent = `单词 ${this.currentWordIndex + 1}/${this.targetWords.length} 完成，听一遍例句再继续。`;
         document.getElementById('sentenceEn').textContent = this.targetSentence;
         document.getElementById('sentenceCn').textContent = this.targetSentenceCn;
         sentenceBox.style.display = 'block';
+        title.classList.remove('learning-highlight');
+        sentenceBox.classList.remove('learning-highlight');
+        void sentenceBox.offsetWidth;
+        title.classList.add('learning-highlight');
+        sentenceBox.classList.add('learning-highlight');
         document.getElementById('modalShareBtn').style.display = 'none';
 
         btn.textContent = '下一个单词';
@@ -1721,6 +2230,7 @@ class WordMatchGame {
         };
 
         modal.classList.add('active');
+        this.locked = false;
         this.sound.speak(this.targetWord + '. ' + this.targetSentence);
     }
 
@@ -1732,6 +2242,11 @@ class WordMatchGame {
         const btn = document.getElementById('modalBtn');
         const sentenceBox = document.getElementById('sentenceBox');
         const actions = document.getElementById('modalActions');
+        sentenceBox.classList.remove('failure-card');
+        sentenceBox.classList.remove('learning-highlight');
+        title.classList.remove('learning-highlight');
+        document.getElementById('modalShareBtn').textContent = '📤 分享';
+        document.getElementById('modalShareBtn').onclick = () => this.generateShareImage();
 
         if (type === 'win') {
             icon.textContent = '🎉';
@@ -1759,56 +2274,95 @@ class WordMatchGame {
                 btn.textContent = '再来一组';
                 btn.onclick = () => { this.closeModal(); this.startGame(); };
             } else if (this.gameMode === 'daily') {
-                title.textContent = '每日挑战完成!';
-                text.textContent = `今日单词 "${this.targetWord}" (${this.targetChinese})\n得分 ${this.score}`;
-                btn.textContent = '再来一次';
-                btn.onclick = () => { this.closeModal(); this.startDailyChallenge(); };
+                title.textContent = '今日挑战完成!';
+                text.textContent = this.lastDailyReward === 800
+                    ? '首次完成今天的3个单词，获得 800 分奖励。'
+                    : '再次完成今天的3个单词，获得 200 分奖励。';
+                btn.textContent = '返回首页';
+                btn.onclick = () => { this.closeModal(); this.backToMenu(); };
             }
             document.getElementById('sentenceEn').textContent = this.targetSentence;
-            document.getElementById('sentenceCn').textContent = this.targetChinese + '：' + this.targetSentence;
+            document.getElementById('sentenceCn').textContent = this.targetSentenceCn || this.targetChinese;
             sentenceBox.style.display = 'block';
             actions.style.display = 'flex';
             this.sound.speak(this.targetWord + '. ' + this.targetSentence);
         } else {
             icon.textContent = '😢';
-            if (this.gameMode === 'timed') {
-                title.textContent = '时间到!';
-                text.textContent = `时间到了！你一共拼出了 ${this.endlessWords} 个单词，得分 ${this.score}`;
-            } else if (this.gameMode === 'daily') {
-                title.textContent = '挑战失败';
-                text.textContent = `今日单词 "${this.targetWord}" (${this.targetChinese})\n再试一次吧!`;
+            title.textContent = this.gameMode === 'timed' ? '时间到!' : '步数用尽';
+            text.textContent = this.gameMode === 'timed'
+                ? `时间到了！你一共拼出了 ${this.endlessWords} 个单词，得分 ${this.score}`
+                : `先复习一下 "${this.targetWord}" (${this.targetChinese})，再试一次会更稳。`;
+            if (this.gameMode !== 'timed') {
+                this.failedWords[this.targetWord] = (this.failedWords[this.targetWord] || 0) + 1;
+                this.updateMastery(this.targetWord, 'fail');
+                document.getElementById('sentenceEn').textContent = this.targetSentence;
+                document.getElementById('sentenceCn').textContent = this.targetSentenceCn || this.targetChinese;
+                sentenceBox.classList.add('failure-card');
+                sentenceBox.style.display = 'block';
+                this.sound.speak(this.targetWord + '. ' + this.targetSentence);
+                this.saveGlobal();
             } else {
-                title.textContent = '步数用尽';
-                text.textContent = `还差一点点就能拼出 "${this.targetWord}" (${this.targetChinese}) 了，再试一次吧!`;
+                sentenceBox.classList.remove('failure-card');
+                sentenceBox.style.display = 'none';
+                if (this.endlessWords > this.bestTimedWords) {
+                    this.bestTimedWords = this.endlessWords;
+                    this.saveGlobal();
+                }
             }
-            sentenceBox.style.display = 'none';
             actions.style.display = 'flex';
             if (this.gameMode === 'timed') {
                 if (this.endlessWords >= 10) this.unlockAchievement('speed_demon');
                 btn.textContent = '再来一次';
                 btn.onclick = () => { this.closeModal(); this.startGame(); };
-            } else if (this.gameMode === 'daily') {
-                btn.textContent = '再来一次';
-                btn.onclick = () => { this.closeModal(); this.startDailyChallenge(); };
             } else {
                 btn.textContent = '重试';
                 btn.onclick = () => { this.closeModal(); this.resetLevel(); };
+                if ((this.toolInventory.retry_card || 0) > 0) {
+                    text.textContent += `\n可使用错词复活卡保留当前字母进度。`;
+                    document.getElementById('modalShareBtn').style.display = 'inline-block';
+                    document.getElementById('modalShareBtn').textContent = `🧯 复活卡 ${this.toolInventory.retry_card}`;
+                    document.getElementById('modalShareBtn').onclick = () => this.useRetryCard();
+                } else {
+                    document.getElementById('modalShareBtn').style.display = 'none';
+                }
             }
         }
         modal.classList.add('active');
+        this.locked = false;
     }
 
-    closeModal() { document.getElementById('modal').classList.remove('active'); }
+    closeModal() {
+        document.getElementById('modal').classList.remove('active');
+        const cb = this._afterWinModalClose;
+        this._afterWinModalClose = null;
+        if (cb) setTimeout(cb, 260); // 等弹窗淡出后再让伙伴说话，保证玩家看得见 win 气泡
+    }
+
+    // 通关展示排队：进化弹窗优先 → win 结算弹窗 → win 气泡（修复气泡被结算弹窗遮住的 bug）
+    queueWinPresentation(id, bond) {
+        const showWin = () => {
+            this._afterWinModalClose = () => { if (id) this.sayCompanionLine(id, 'win'); };
+            this.showModal('win');
+        };
+        if (bond && bond.evolved) {
+            // 进化弹窗已由 gainCompanionBond 打开，关闭后再走 win 弹窗
+            this._afterEvolveClose = () => setTimeout(showWin, 200);
+        } else {
+            setTimeout(showWin, 400);
+        }
+    }
+
+    useRetryCard() {
+        if (!this.consumeTool('retry_card')) return;
+        this.closeModal();
+        this.moves = Math.max(this.moves, Math.ceil(this.targetWord.length * 2 + 8));
+        this.generateBoard();
+        this.renderBoard();
+        this.updateUI();
+        this.showToast('🧯 已复活：当前单词进度保留');
+    }
 
     nextLevel() {
-        this.clearHint();
-        this.resetAutoHint();
-        this.bombMode = false;
-        this.bombSelected = [];
-        this.isProcessing = false;
-        document.getElementById('gameBoard').style.cursor = '';
-        document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
-
         this.level++;
         this.loadLevel();
         this.generateBoard();
@@ -1816,7 +2370,7 @@ class WordMatchGame {
         this.updateUI();
         this.applyTheme();
         this.saveGlobal();
-        this.startAutoHint();
+        this.greetCompanion();
     }
 
     nextReview() {
@@ -1835,7 +2389,9 @@ class WordMatchGame {
     resetLevel() {
         this.score = Math.max(0, this.score - 50);
         this.levelResetCount++;
-        this.loadLevel();
+        if (this.gameMode === 'review') this.loadReviewWord();
+        else if (this.gameMode === 'daily') this.loadDailyChallenge();
+        else this.loadLevel();
         this.generateBoard();
         this.renderBoard();
         this.updateUI();
@@ -1845,9 +2401,8 @@ class WordMatchGame {
     shuffleBoard() {
         this.resetAutoHint();
         this.unlockAudio();
-        const free = this.getEffect('freeShuffle');
-        if (this.gameMode !== 'endless' && this.moves < 5 && !this.bombMode && !free) return;
-        if (this.gameMode !== 'endless' && !this.bombMode && !free) this.moves -= 5;
+        if (this.gameMode !== 'endless' && this.moves < 5 && !this.bombMode) return;
+        if (this.gameMode !== 'endless' && !this.bombMode) this.moves -= 5;
         this.clearHint();
         this.bombMode = false;
         this.bombSelected = [];
@@ -1859,35 +2414,17 @@ class WordMatchGame {
         this.saveGlobal();
     }
 
-    autoShuffle() {
-        const letters = [];
-        for (let r = 0; r < this.boardSize; r++) {
-            for (let c = 0; c < this.boardSize; c++) {
-                letters.push(this.board[r][c]);
-            }
-        }
-        for (let i = letters.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [letters[i], letters[j]] = [letters[j], letters[i]];
-        }
-        let idx = 0;
-        for (let r = 0; r < this.boardSize; r++) {
-            for (let c = 0; c < this.boardSize; c++) {
-                this.board[r][c] = letters[idx++];
-            }
-        }
-        this.removeInitialMatches();
-        this.assignLetterColors();
-    }
-
     updateUI() {
-        document.getElementById('level').textContent = this.level;
+        document.getElementById('timerBar').style.display = 'none';
+        document.getElementById('level').textContent = this.gameMode === 'daily' ? '今日' : this.level;
         document.getElementById('moves').textContent = this.moves;
         document.getElementById('score').textContent = this.score;
-        document.getElementById('labelLevel').textContent = this.gameMode === 'review' ? '复习' : '关卡';
+        document.getElementById('labelLevel').textContent = this.gameMode === 'review' ? '复习' : (this.gameMode === 'daily' ? '挑战' : '关卡');
         document.getElementById('labelMoves').textContent = this.gameMode === 'endless' ? '已拼' : '步数';
         if (this.gameMode === 'endless') document.getElementById('moves').textContent = this.endlessWords;
         this.updateBombUI();
+        this.updateToolUI();
+        this.renderCompanionDock();
     }
 
     updateBombUI() {
@@ -1896,9 +2433,66 @@ class WordMatchGame {
         if (bombCount) bombCount.textContent = this.bombs;
         if (bombBtn) {
             bombBtn.disabled = this.bombs <= 0 || this.bombMode || this.isProcessing;
-            const remain = this.nextBombAt - this.score;
+            const remain = this.nextBombAt - this.coins;
             bombBtn.title = remain > 0 ? `再得 ${remain} 分兑换下一颗炸弹` : '已有炸弹可用';
         }
+    }
+
+    updateToolUI() {
+        const map = {
+            first_hint: 'toolFirstHint',
+            definition_card: 'toolDefinition',
+            sentence_card: 'toolSentence'
+        };
+        Object.entries(map).forEach(([tool, id]) => {
+            const el = document.getElementById(id);
+            const btn = document.querySelector(`[data-tool="${tool}"]`);
+            const count = this.toolInventory[tool] || 0;
+            if (el) el.textContent = count;
+            if (btn) btn.disabled = count <= 0 || this.isProcessing;
+        });
+    }
+
+    consumeTool(id) {
+        if ((this.toolInventory[id] || 0) <= 0) {
+            this.showToast('这个道具还没有库存，可以去商店兑换');
+            return false;
+        }
+        this.toolInventory[id]--;
+        this.saveGlobal();
+        this.updateToolUI();
+        return true;
+    }
+
+    useTool(id) {
+        this.unlockAudio();
+        if (this.isProcessing) return;
+        if (id === 'first_hint') {
+            if (!this.consumeTool(id)) return;
+            const next = this.getNextNeededLetter();
+            if (!next) { this.showToast('这个单词已经快完成了'); return; }
+            document.querySelectorAll('.tile').forEach(t => {
+                if (t.textContent === next) t.classList.add('hint');
+            });
+            this.showToast(`🔤 优先收集字母 ${next}`);
+            setTimeout(() => this.clearHint(), 3000);
+        } else if (id === 'definition_card') {
+            if (!this.consumeTool(id)) return;
+            this.showWordDetail();
+        } else if (id === 'sentence_card') {
+            if (!this.consumeTool(id)) return;
+            this.showToast(`${this.targetSentence} / ${this.targetSentenceCn || this.targetChinese}`);
+            this.sound.speak(this.targetWord + '. ' + this.targetSentence);
+        }
+    }
+
+    getNextNeededLetter() {
+        const seen = {};
+        for (let ch of this.targetWord) {
+            seen[ch] = (seen[ch] || 0) + 1;
+            if ((this.collectedLetters[ch] || 0) < seen[ch]) return ch;
+        }
+        return '';
     }
 
     updateTimedUI() {
@@ -1909,6 +2503,7 @@ class WordMatchGame {
         document.getElementById('labelMoves').textContent = '剩余';
         document.getElementById('timerBar').style.display = 'block';
         this.updateBombUI();
+        this.updateToolUI();
     }
 
     updateEndlessUI() {
@@ -1919,9 +2514,11 @@ class WordMatchGame {
         document.getElementById('labelMoves').textContent = '已拼';
         document.getElementById('timerBar').style.display = 'none';
         this.updateBombUI();
+        this.updateToolUI();
     }
 
     startTimedMode() {
+        clearInterval(this.timedTimer);
         document.getElementById('timerBar').style.display = 'block';
         this.timedTimer = setInterval(() => {
             this.timeLeft--;
@@ -1960,10 +2557,7 @@ class WordMatchGame {
         const t1 = document.querySelector(`[data-r="${move.r1}"][data-c="${move.c1}"]`);
         const t2 = document.querySelector(`[data-r="${move.r2}"][data-c="${move.c2}"]`);
         if (t1 && t2) { t1.classList.add('hint'); t2.classList.add('hint'); }
-        let cooldown = 10;
-        const reduction = this.getEffect('hintCooldown');
-        if (reduction) cooldown = Math.max(1, cooldown - Math.floor(reduction / 1000));
-        this.hintCooldown = cooldown;
+        this.hintCooldown = 10;
         this.updateHintButton();
         const interval = setInterval(() => {
             this.hintCooldown--;
@@ -1977,15 +2571,13 @@ class WordMatchGame {
             for (let c = 0; c < this.boardSize; c++) {
                 if (c < this.boardSize - 1) {
                     this.swap(r, c, r, c + 1);
-                    const ok = this.hasMatchAt(r, c) || this.hasMatchAt(r, c + 1);
+                    if (this.findMatches().length > 0) { this.swap(r, c, r, c + 1); return { r1: r, c1: c, r2: r, c2: c + 1 }; }
                     this.swap(r, c, r, c + 1);
-                    if (ok) return { r1: r, c1: c, r2: r, c2: c + 1 };
                 }
                 if (r < this.boardSize - 1) {
                     this.swap(r, c, r + 1, c);
-                    const ok = this.hasMatchAt(r, c) || this.hasMatchAt(r + 1, c);
+                    if (this.findMatches().length > 0) { this.swap(r, c, r + 1, c); return { r1: r, c1: c, r2: r + 1, c2: c }; }
                     this.swap(r, c, r + 1, c);
-                    if (ok) return { r1: r, c1: c, r2: r + 1, c2: c };
                 }
             }
         }
@@ -2013,13 +2605,12 @@ class WordMatchGame {
 
     scheduleAutoHint() {
         if (this.autoHintTimer) clearTimeout(this.autoHintTimer);
-        const delay = Math.max(3000, 10000 - this.getEffect('hintCooldown'));
         this.autoHintTimer = setTimeout(() => {
             if (!this.isProcessing && this.moves > 0 && this.hintCooldown <= 0 && !this.bombMode) {
                 this.showHint();
             }
             this.scheduleAutoHint();
-        }, delay);
+        }, 10000);
     }
 
     resetAutoHint() {
@@ -2031,6 +2622,9 @@ class WordMatchGame {
         document.getElementById('detailWord').textContent = this.targetWord;
         document.getElementById('detailSentence').textContent = this.targetSentence;
         document.getElementById('detailCn').textContent = this.targetSentenceCn || this.targetChinese;
+        const mastery = this.getMasteryInfo(this.targetWord);
+        document.getElementById('detailMastery').textContent = `掌握度：${mastery.icon} ${mastery.name} · ${mastery.percent}%`;
+        document.getElementById('detailMasteryFill').style.width = mastery.percent + '%';
         const isFav = this.favorites.some(w => w.en === this.targetWord);
         document.getElementById('favBtn').textContent = isFav ? '❤️ 已收藏' : '⭐ 收藏';
         document.getElementById('detailModal').classList.add('active');
@@ -2061,8 +2655,10 @@ class WordMatchGame {
         } else {
             this.favorites.forEach(w => {
                 const item = document.createElement('div');
+                const mastery = this.getMasteryInfo(w.en);
                 item.className = 'vocab-item';
                 item.innerHTML = `<div><span class="word-text">${w.en}</span><span class="word-cn">${w.cn}</span></div>
+                    <span class="mastery-pill">${mastery.icon} ${mastery.name}</span>
                     <div class="actions">
                         <button onclick="game.sound.speak('${w.en}')">🔊</button>
                         <button onclick="game.removeFavorite('${w.en}')">🗑️</button>
@@ -2079,22 +2675,48 @@ class WordMatchGame {
         this.showVocab();
     }
 
-    wrapText(ctx, text, maxWidth) {
-        const chars = text.split('');
-        let line = '';
-        const lines = [];
-        for (let i = 0; i < chars.length; i++) {
-            const testLine = line + chars[i];
-            const metrics = ctx.measureText(testLine);
-            if (metrics.width > maxWidth && i > 0) {
-                lines.push(line);
-                line = chars[i];
-            } else {
-                line = testLine;
-            }
-        }
-        lines.push(line);
-        return lines;
+    showReport() {
+        const uniqueWords = [...new Set(this.learnedWords.map(w => w.en))];
+        const playDays = Object.keys(this.playDates).length;
+        const dailyDone = Object.keys(this.dailyCompletions).filter(k => this.dailyCompletions[k]).length;
+        const streak = this.getLearningStreak();
+        const reportItems = [
+            ['学习天数', `${playDays} 天`],
+            ['连续学习', `${streak} 天`],
+            ['已学单词', `${uniqueWords.length} 个`],
+            ['累计拼词', `${this.totalCompletedWords} 次`],
+            ['今日挑战', `${dailyDone} 次`],
+            ['无尽最佳', `${this.bestEndlessWords} 词`]
+        ];
+        const grid = document.getElementById('reportGrid');
+        grid.innerHTML = reportItems.map(([label, value]) =>
+            `<div class="report-card"><div class="num">${value}</div><div class="label">${label}</div></div>`
+        ).join('');
+
+        const recent = this.learnedWords.slice(-6).reverse();
+        document.getElementById('recentWordsReport').innerHTML = recent.length
+            ? recent.map(w => `<div><strong>${w.en}</strong> <span style="color:#999">${w.cn}</span></div>`).join('')
+            : '还没有学习记录，先去闯关模式拼出第一个单词吧。';
+
+        const lowMastery = uniqueWords
+            .map(word => ({ word, info: this.getMasteryInfo(word) }))
+            .filter(item => item.info.score < 5)
+            .slice(0, 5);
+        const hard = Object.entries(this.failedWords)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5);
+        document.getElementById('hardWordsReport').innerHTML = (hard.length || lowMastery.length)
+            ? [
+                ...hard.map(([word, count]) => {
+                const found = this.wordLevels.flat().find(w => w.en === word) || this.learnedWords.find(w => w.en === word);
+                const cn = found ? found.cn : '';
+                return `<div><strong>${word}</strong> <span style="color:#999">${cn}</span> · 失败 ${count} 次</div>`;
+                }),
+                ...lowMastery.map(({word, info}) => `<div><strong>${word}</strong> <span class="mastery-pill">${info.icon} ${info.name}</span></div>`)
+            ].join('')
+            : '暂时没有明显卡点，保持这个节奏。';
+
+        document.getElementById('reportModal').classList.add('active');
     }
 
     generateShareImage() {
@@ -2113,27 +2735,28 @@ class WordMatchGame {
         ctx.fillStyle = 'white';
         ctx.font = 'bold 48px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('单词拼拼消', w / 2, 70);
+        ctx.fillText('单词拼拼消', w / 2, 80);
 
         ctx.font = 'bold 72px sans-serif';
-        ctx.fillText(this.targetWord, w / 2, 160);
+        ctx.fillText(this.targetWord, w / 2, 180);
 
         ctx.font = '32px sans-serif';
-        ctx.fillText(this.targetChinese, w / 2, 205);
+        ctx.fillText(this.targetChinese, w / 2, 230);
 
         ctx.font = '24px sans-serif';
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        const sentenceLines = this.wrapText(ctx, this.targetSentence, w - 80);
-        let sy = 245;
-        sentenceLines.forEach(line => {
-            ctx.fillText(line, w / 2, sy);
-            sy += 32;
-        });
+        ctx.fillText(this.targetSentence, w / 2, 280);
 
         ctx.font = 'bold 28px sans-serif';
         ctx.fillStyle = '#ffd700';
-        const modeText = this.gameMode === 'story' ? `第 ${this.level} 关` : this.gameMode === 'timed' ? '限时挑战' : '无尽模式';
-        ctx.fillText(`${modeText} · 得分 ${this.score}`, w / 2, 355);
+        const modeText = {
+            story: `第 ${this.level} 关`,
+            timed: '限时挑战',
+            endless: '无尽模式',
+            review: '单词复习',
+            daily: '每日挑战'
+        }[this.gameMode] || '单词拼拼消';
+        ctx.fillText(`${modeText} · 得分 ${this.score}`, w / 2, 340);
 
         const link = document.createElement('a');
         link.download = 'word-match-score.png';
