@@ -50,8 +50,8 @@ Object.assign(WordMatchGame.prototype, {
 
     loadReviewWord() {
         if (this.learnedWords.length === 0) {
-            alert('还没有学过单词，先去闯关模式学习吧！');
             this.backToMenu();
+            this.showToast('还没有学过单词，先去闯关模式学习吧！');
             return;
         }
         const pool = [...this.learnedWords].sort((a, b) => {
@@ -223,6 +223,7 @@ Object.assign(WordMatchGame.prototype, {
     renderTarget() {
         const el = document.getElementById('targetWord');
         el.innerHTML = '';
+        el.classList.toggle('long-word', this.targetWord.length >= 8);
         const needed = {};
         for (let ch of this.targetWord) needed[ch] = (needed[ch] || 0) + 1;
         const got = {};

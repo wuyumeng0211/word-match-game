@@ -73,6 +73,9 @@ body {
 }
 .target-label { font-size: 12px; color: #856404; margin-bottom: 6px; }
 .target-word { display: flex; justify-content: center; gap: 5px; flex-wrap: wrap; }
+/* 8 字母以上长词：整体缩小格子，保证单行放下、不折行留孤儿格 */
+.target-word.long-word { gap: 4px; }
+.target-word.long-word .letter-slot { width: 32px; height: 32px; font-size: 16px; border-radius: 6px; }
 .letter-slot {
     width: 40px; height: 40px; border-radius: 8px;
     display: flex; justify-content: center; align-items: center;
