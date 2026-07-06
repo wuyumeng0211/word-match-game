@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-match-game-v13';
+const CACHE_NAME = 'word-match-game-v14';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,6 @@ const ASSETS = [
   './game-learning.js',
   './game-ui.js',
   './main.js',
-  './word-match-game.html',
   './manifest.json',
   './icon.svg',
   './assets/companions/dino.png',
