@@ -34,6 +34,19 @@
    原始纹理配色（仅保留像素外形），避免遮盖辅助纹理。
    ============================================================ */
 
+/* 像素字体本地化：Press Start 2P 拉丁子集（4.7KB，仅英文/数字），
+   PWA 离线可用。中文继续走系统黑体 900。仅被像素皮肤 token 引用。 */
+@font-face {
+    font-family: "Press Start 2P";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("assets/fonts/press-start-2p-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+2013-2014, U+2018-201D, U+2026;
+}
+
+
+
 body[data-skin="pixel"] {
     /* tokens */
     --px-paper: #f8f3ef;
@@ -55,7 +68,7 @@ body[data-skin="pixel"] {
     --px-border: 2px solid var(--px-ink);
     --px-shadow: 2px 2px 0 var(--px-ink);
     --px-shadow-panel: 3px 3px 0 var(--px-shadow-soft), 3px 3px 0 1px var(--px-ink);
-    --px-font-en: "Courier New", Courier, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --px-font-en: "Press Start 2P", "Courier New", Courier, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --px-font-zh: "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", sans-serif;
 
     /* 背景：暖纸（!important 压过 applyTheme 写在 body 上的内联渐变） */
