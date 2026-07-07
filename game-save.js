@@ -90,23 +90,6 @@ Object.assign(WordMatchGame.prototype, {
         this.updateGlobalStats();
     },
 
-    updateGlobalStats() {
-        const uniqueWords = [...new Set(this.learnedWords.map(w => w.en))];
-        document.getElementById('statLevel').textContent = this.level;
-        document.getElementById('statScore').textContent = this.coins;
-        document.getElementById('statWords').textContent = uniqueWords.length;
-        document.getElementById('statVocab').textContent = this.favorites.length;
-        this.updateDailyCard();
-        this.renderLevelMap();
-        const statsGrid = document.getElementById('globalStats');
-        if (statsGrid) {
-            statsGrid.classList.remove('frame-bronze','frame-silver','frame-gold');
-            if (this.equippedFrame === 'bronze_frame') statsGrid.classList.add('frame-bronze');
-            else if (this.equippedFrame === 'silver_frame') statsGrid.classList.add('frame-silver');
-            else if (this.equippedFrame === 'gold_frame') statsGrid.classList.add('frame-gold');
-        }
-    },
-
     markPlayDay() {
         this.playDates[this.getDateKey()] = true;
     },

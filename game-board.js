@@ -230,83 +230,7 @@ Object.assign(WordMatchGame.prototype, {
         const t = this.board[r1][c1]; this.board[r1][c1] = this.board[r2][c2]; this.board[r2][c2] = t;
     },
 
-    renderBoard() {
-        const el = document.getElementById('gameBoard');
-        el.style.gridTemplateColumns = `repeat(${this.boardSize}, 1fr)`;
-        el.style.maxWidth = this.boardSize === 7 ? '360px' : '320px';
-        const boardSkin = this.equippedBoard;
-
-        const existing = {};
-        el.querySelectorAll('.tile').forEach(t => {
-            const r = parseInt(t.dataset.r), c = parseInt(t.dataset.c);
-            existing[`${r},${c}`] = t;
-        });
-
-        for (let r = 0; r < this.boardSize; r++) {
-            for (let c = 0; c < this.boardSize; c++) {
-                const key = `${r},${c}`;
-                const letter = this.board[r][c];
-                const cls = 'tile-' + letter.toLowerCase();
-                let skinCls = '';
-                if (boardSkin === 'crystal_board') skinCls = ' tile-crystal';
-                else if (boardSkin === 'pixel_board') skinCls = ' tile-pixel';
-                else if (boardSkin === 'metal_board') skinCls = ' tile-metal';
-                else if (boardSkin === 'ink_board') skinCls = ' tile-ink';
-                const fullClass = `tile ${cls}${skinCls}`;
-
-                let tile = existing[key];
-                if (tile) {
-                    if (tile.textContent !== letter) tile.textContent = letter;
-                    if (tile.className !== fullClass) tile.className = fullClass;
-                    this.applyTileColor(tile, letter);
-                    delete existing[key];
-                } else {
-                    tile = document.createElement('div');
-                    tile.className = fullClass;
-                    tile.textContent = letter;
-                    tile.dataset.r = r; tile.dataset.c = c;
-                    this.applyTileColor(tile, letter);
-                    el.appendChild(tile);
-                }
-            }
-        }
-
-        for (let key in existing) existing[key].remove();
-        this.renderTarget();
-    },
-
-    renderTarget() {
-        const el = document.getElementById('targetWord');
-        el.innerHTML = '';
-        el.classList.toggle('long-word', this.targetWord.length >= 8);
-        const needed = {};
-        for (let ch of this.targetWord) needed[ch] = (needed[ch] || 0) + 1;
-        const got = {};
-        for (let ch of this.targetWord) {
-            got[ch] = (got[ch] || 0) + 1;
-            const slot = document.createElement('div');
-            const have = (this.collectedLetters[ch] || 0) >= got[ch];
-            slot.className = `letter-slot ${have ? 'collected' : 'pending'}`;
-            slot.textContent = have ? ch : '?';
-            slot.dataset.letter = ch;
-            slot.dataset.occurrence = got[ch] - 1;
-            el.appendChild(slot);
-        }
-        let total = 0, have = 0;
-        for (let ch in needed) { total += needed[ch]; have += Math.min(this.collectedLetters[ch] || 0, needed[ch]); }
-        const progress = Math.round(have / total * 100);
-        document.getElementById('progressFill').style.width = progress + '%';
-        document.getElementById('wordProgressText').textContent = progress + '%';
-        document.getElementById('chineseMeaning').textContent = this.targetChinese;
-        const mastery = this.getMasteryInfo(this.targetWord);
-        const masteryFill = document.getElementById('targetMasteryFill');
-        if (masteryFill) masteryFill.style.width = mastery.percent + '%';
-        const masteryText = document.getElementById('targetMasteryText');
-        if (masteryText) masteryText.textContent = mastery.percent + '%';
-        const totalWords = this.targetWords ? this.targetWords.length : 1;
-        const current = this.currentWordIndex !== undefined ? this.currentWordIndex + 1 : 1;
-        document.getElementById('targetLabel').textContent = `目标单词 (${current}/${totalWords})`;
-    },
+    // renderBoard / renderTarget（纯 DOM）已迁移至 renderer-board.js
 
     handleClick(r, c) {
         this.resetAutoHint();
@@ -315,13 +239,12 @@ Object.assign(WordMatchGame.prototype, {
         if (this.gameMode !== 'endless' && this.moves <= 0 && !this.bombMode) return;
         if (this.bombMode) { this.handleBombClick(r, c); return; }
         this.clearHint();
-        const clicked = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
         if (!this.selectedTile) {
+            const clicked = this.uiSelectTile(r, c);
             this.selectedTile = { r, c, el: clicked };
-            clicked.classList.add('selected');
         } else {
             const prev = this.selectedTile;
-            prev.el.classList.remove('selected');
+            this.uiDeselectTile(prev.el);
             this.selectedTile = null;
             const dr = Math.abs(prev.r - r), dc = Math.abs(prev.c - c);
             if ((dr === 1 && dc === 0) || (dr === 0 && dc === 1)) {
@@ -348,15 +271,7 @@ Object.assign(WordMatchGame.prototype, {
             this.checkWin();
         } else {
             this.sound.play('invalid');
-            const el1 = document.querySelector(`[data-r="${r1}"][data-c="${c1}"]`);
-            const el2 = document.querySelector(`[data-r="${r2}"][data-c="${c2}"]`);
-            if (el1) el1.classList.add('shake');
-            if (el2) el2.classList.add('shake');
-            setTimeout(() => {
-                if (el1) el1.classList.remove('shake');
-                if (el2) el2.classList.remove('shake');
-            }, 400);
-            await new Promise(r => setTimeout(r, 250));
+            await this.uiShakeTiles(r1, c1, r2, c2);
             this.swap(r1, c1, r2, c2);
             this.renderBoard();
         }
@@ -368,47 +283,7 @@ Object.assign(WordMatchGame.prototype, {
         }
     },
 
-    animateSwap(r1, c1, r2, c2) {
-        const el1 = document.querySelector(`[data-r="${r1}"][data-c="${c1}"]`);
-        const el2 = document.querySelector(`[data-r="${r2}"][data-c="${c2}"]`);
-        if (this.reduceMotion || !el1 || !el2) {
-            this.swap(r1, c1, r2, c2);
-            this.renderBoard();
-            return Promise.resolve();
-        }
-        const a = el1.getBoundingClientRect();
-        const b = el2.getBoundingClientRect();
-        const dx = b.left - a.left, dy = b.top - a.top;
-        // 落到最终态（节点按坐标复用，字母已互换）
-        this.swap(r1, c1, r2, c2);
-        this.renderBoard();
-        const n1 = document.querySelector(`[data-r="${r1}"][data-c="${c1}"]`);
-        const n2 = document.querySelector(`[data-r="${r2}"][data-c="${c2}"]`);
-        if (!n1 || !n2) return Promise.resolve();
-        // Invert：先把两枚棋子摆回交换前的视觉位置
-        n1.style.transition = 'none';
-        n2.style.transition = 'none';
-        n1.style.zIndex = '5';
-        n2.style.zIndex = '5';
-        n1.style.transform = `translate(${dx}px, ${dy}px)`;
-        n2.style.transform = `translate(${-dx}px, ${-dy}px)`;
-        // Play：下一帧滑回真实位置
-        return new Promise(resolve => {
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                n1.style.transition = 'transform 0.15s ease';
-                n2.style.transition = 'transform 0.15s ease';
-                n1.style.transform = '';
-                n2.style.transform = '';
-                setTimeout(() => {
-                    [n1, n2].forEach(n => {
-                        n.style.transition = '';
-                        n.style.zIndex = '';
-                    });
-                    resolve();
-                }, 160);
-            }));
-        });
-    },
+    // animateSwap（纯 DOM 动画）已迁移至 renderer-board.js
 
     findMatches() {
         const set = new Set();
@@ -453,34 +328,12 @@ Object.assign(WordMatchGame.prototype, {
             const pts = matches.length * 10 * combo;
             this.score += pts;
 
-            for (let m of matches) {
-                const t = document.querySelector(`[data-r="${m.r}"][data-c="${m.c}"]`);
-                if (t) {
-                    t.classList.add('matched');
-                    const rect = t.getBoundingClientRect();
-                    const containerRect = document.getElementById('boardContainer').getBoundingClientRect();
-                    this.spawnParticles(rect.left - containerRect.left + rect.width / 2, rect.top - containerRect.top + rect.height / 2, getComputedStyle(t).background);
-                    this.spawnScorePopup(rect.left - containerRect.left + rect.width / 2, rect.top - containerRect.top, pts / matches.length);
-                }
-            }
-            if (combo > 1) {
-                const el = document.createElement('div');
-                el.className = 'combo-indicator';
-                el.textContent = `Combo ×${combo}`;
-                document.getElementById('gameBoard').appendChild(el);
-                setTimeout(() => el.remove(), 800);
-                if (!this.reduceMotion) {
-                    const board = document.getElementById('gameBoard');
-                    board.classList.remove('combo-shake');
-                    void board.offsetWidth;
-                    board.classList.add('combo-shake');
-                    setTimeout(() => board.classList.remove('combo-shake'), 280);
-                }
-            }
+            this.uiMatchedTilesFx(matches, pts);
+            if (combo > 1) this.uiComboIndicator(combo);
             await new Promise(r => setTimeout(r, 400));
             this.removeAndFill(matches);
             this.renderBoard();
-            document.querySelectorAll('.tile').forEach(t => t.classList.add('falling'));
+            this.uiTilesFalling();
             await new Promise(r => setTimeout(r, 300));
             matches = this.findMatches();
         }
@@ -492,34 +345,7 @@ Object.assign(WordMatchGame.prototype, {
         this.checkBombReward();
     },
 
-    flyLetterToTarget(r, c, letter, occurrence) {
-        if (this.reduceMotion) return;
-        const tile = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
-        const slot = document.querySelector(`.letter-slot[data-letter="${letter}"][data-occurrence="${occurrence}"]`);
-        if (!tile || !slot) return;
-        const tileRect = tile.getBoundingClientRect();
-        const slotRect = slot.getBoundingClientRect();
-        const flyer = document.createElement('div');
-        flyer.className = 'letter-fly';
-        flyer.textContent = letter;
-        flyer.style.left = tileRect.left + 'px';
-        flyer.style.top = tileRect.top + 'px';
-        flyer.style.width = tileRect.width + 'px';
-        flyer.style.height = tileRect.height + 'px';
-        flyer.style.background = getComputedStyle(tile).background;
-        flyer.style.color = getComputedStyle(tile).color;
-        flyer.style.border = getComputedStyle(tile).border;
-        flyer.style.setProperty('--fly-x', (slotRect.left + slotRect.width / 2 - tileRect.left - tileRect.width / 2) + 'px');
-        flyer.style.setProperty('--fly-y', (slotRect.top + slotRect.height / 2 - tileRect.top - tileRect.height / 2) + 'px');
-        document.body.appendChild(flyer);
-        setTimeout(() => {
-            flyer.remove();
-            const arrivedSlot = document.querySelector(`.letter-slot[data-letter="${letter}"][data-occurrence="${occurrence}"]`);
-            if (!arrivedSlot) return;
-            arrivedSlot.classList.add('arriving');
-            setTimeout(() => arrivedSlot.classList.remove('arriving'), 450);
-        }, 550);
-    },
+    // flyLetterToTarget（纯 DOM 动画）已迁移至 renderer-board.js
 
     removeAndFill(matches) {
         const rem = new Set();
@@ -703,8 +529,7 @@ Object.assign(WordMatchGame.prototype, {
         this.clearHint();
         this.bombMode = false;
         this.bombSelected = [];
-        document.getElementById('gameBoard').style.cursor = '';
-        document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
+        this.uiClearBombTargets();
         this.generateBoard();
         this.renderBoard();
         this.updateUI();
@@ -717,9 +542,7 @@ Object.assign(WordMatchGame.prototype, {
         this.clearHint();
         const move = this.findValidMove();
         if (!move) return;
-        const t1 = document.querySelector(`[data-r="${move.r1}"][data-c="${move.c1}"]`);
-        const t2 = document.querySelector(`[data-r="${move.r2}"][data-c="${move.c2}"]`);
-        if (t1 && t2) { t1.classList.add('hint'); t2.classList.add('hint'); }
+        this.uiShowHint(move);
         this.hintCooldown = 10;
         this.updateHintButton();
         const interval = setInterval(() => {
@@ -729,20 +552,7 @@ Object.assign(WordMatchGame.prototype, {
         }, 1000);
     },
 
-    clearHint() {
-        document.querySelectorAll('.tile.hint').forEach(t => t.classList.remove('hint'));
-    },
-
-    updateHintButton() {
-        const btn = document.getElementById('hintBtn');
-        if (this.hintCooldown > 0) {
-            btn.disabled = true;
-            btn.innerHTML = `💡 提示 <span style="font-size:11px;display:block">${this.hintCooldown}s</span>`;
-        } else {
-            btn.disabled = false;
-            btn.innerHTML = '💡 提示';
-        }
-    },
+    // clearHint / updateHintButton（纯 DOM）已迁移至 renderer-board.js
 
     startAutoHint() {
         this.scheduleAutoHint();
