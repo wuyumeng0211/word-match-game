@@ -120,63 +120,17 @@ Object.assign(WordMatchGame.prototype, {
         this.showToast('已改名为「' + name + '」');
     },
 
-    _guessGender(v) {
-        const name = (v.name || '').toLowerCase();
-        const g = v.gender ? String(v.gender).toLowerCase() : '';
-        if (g.indexOf('female') !== -1) return 'female';
-        if (g.indexOf('male') !== -1) return 'male';
-        if (VOICE_GENDER_HINTS.female.some(n => name.indexOf(n) !== -1)) return 'female';
-        if (VOICE_GENDER_HINTS.male.some(n => name.indexOf(n) !== -1)) return 'male';
-        return null;
-    },
 
-    _pickVoice(id) {
-        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
-        const voices = window.speechSynthesis.getVoices();
-        if (!voices || voices.length === 0) return null;
-        const enVoices = voices.filter(v => v.lang && v.lang.toLowerCase().indexOf('en') === 0);
-        if (!enVoices.length) return null;
-        const cfg = COMPANION_VOICE[id] || {};
-        // 1) 先按具体音色名精确匹配
-        const prefer = cfg.prefer || [];
-        for (const key of prefer) {
-            const k = key.toLowerCase();
-            const hit = enVoices.find(v => v.name && v.name.toLowerCase().indexOf(k) !== -1);
-            if (hit) return hit;
-        }
-        // 2) 按期望性别推断（多数浏览器无 voice.gender，靠音色名库）
-        if (cfg.gender) {
-            const match = enVoices.find(v => this._guessGender(v) === cfg.gender);
-            if (match) return match;
-            // 3) 退而求其次：避免选到反性别的音色
-            const opposite = cfg.gender === 'male' ? 'female' : 'male';
-            const notOpposite = enVoices.find(v => this._guessGender(v) !== opposite);
-            if (notOpposite) return notOpposite;
-        }
-        return enVoices[0];
-    },
 
     speakCompanionLine(id, text) {
         if (!this.companionVoiceOn) return;
-        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-        try {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(text);
-            u.lang = 'en-US';
-            const v = COMPANION_VOICE[id] || {};
-            u.pitch = v.pitch != null ? v.pitch : 1;
-            u.rate  = v.rate  != null ? v.rate  : 1;
-            const picked = this._pickVoice(id);
-            if (picked) u.voice = picked;
-            window.speechSynthesis.speak(u);
-        } catch(e) {}
+        SpeechAdapter.speakWithVoice(COMPANION_VOICE[id] || {}, text);
     },
+
 
     toggleCompanionVoice() {
         this.companionVoiceOn = !this.companionVoiceOn;
-        if (!this.companionVoiceOn && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            try { window.speechSynthesis.cancel(); } catch(e) {}
-        }
+        if (!this.companionVoiceOn) SpeechAdapter.cancelSpeech();
         this.saveGlobal();
         this.renderCompanionDock();
         this.showToast(this.companionVoiceOn ? '🔊 伙伴语音已开启' : '🔇 伙伴语音已静音');

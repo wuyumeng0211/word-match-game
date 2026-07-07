@@ -128,9 +128,7 @@ Object.assign(WordMatchGame.prototype, {
         const btn = document.getElementById('evolveBtn');
         if (btn) btn.onclick = () => {
             modal.classList.remove('active');
-            if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-                try { window.speechSynthesis.cancel(); } catch(e) {}
-            }
+            SpeechAdapter.cancelSpeech();
             const cb = this._afterEvolveClose;
             this._afterEvolveClose = null;
             if (cb) cb();

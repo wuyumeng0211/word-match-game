@@ -59,6 +59,7 @@ class WordMatchGame {
     init() {
         this.loadGlobalSave();
         this.applySkin();
+        SpeechAdapter.init();
         this.bindEvents();
         this.updateGlobalStats();
         this.renderAchievements();
@@ -68,7 +69,7 @@ class WordMatchGame {
         this.renderCompanionDock();
         this.companionLoginGreet();
         this.applyEquippedTheme();
-        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches && localStorage.getItem('wordMatchGlobal') === null) {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches && StorageAdapter.get('wordMatchGlobal') === null) {
             this.reduceMotion = true;
         }
         this.applyAccessibilitySettings();
@@ -78,7 +79,7 @@ class WordMatchGame {
             ttsBtn.textContent = this.sound.speakEnabled ? '🗣️ 朗读' : '🤐 静音';
             ttsBtn.classList.toggle('off', !this.sound.speakEnabled);
         }
-        if (!localStorage.getItem('wordMatchTutorial')) {
+        if (!StorageAdapter.get('wordMatchTutorial')) {
             setTimeout(() => this.startTutorial(), 300);
         }
     }

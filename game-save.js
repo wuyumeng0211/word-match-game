@@ -1,8 +1,8 @@
-// 存档与统计：localStorage 全局存档、连续学习天数、日期与随机工具
+// 存档与统计：全局存档（经 StorageAdapter）、连续学习天数、日期与随机工具
 Object.assign(WordMatchGame.prototype, {
     loadGlobalSave() {
         try {
-            const raw = localStorage.getItem('wordMatchGlobal');
+            const raw = StorageAdapter.get('wordMatchGlobal');
             if (raw) {
                 const data = JSON.parse(raw);
                 const version = data.version || 1;
@@ -86,7 +86,7 @@ Object.assign(WordMatchGame.prototype, {
             speakEnabled: this.sound.speakEnabled,
             date: Date.now()
         };
-        localStorage.setItem('wordMatchGlobal', JSON.stringify(data));
+        StorageAdapter.set('wordMatchGlobal', JSON.stringify(data));
         this.updateGlobalStats();
     },
 

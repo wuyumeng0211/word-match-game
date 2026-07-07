@@ -158,7 +158,7 @@ Object.assign(WordMatchGame.prototype, {
 
     finishTutorial() {
         document.getElementById('tutorialModal').classList.remove('active');
-        localStorage.setItem('wordMatchTutorial', 'done');
+        StorageAdapter.set('wordMatchTutorial', 'done');
     },
 
     renderAchievements() {
