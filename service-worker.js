@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-match-game-v14';
+const CACHE_NAME = 'word-match-game-v15';
 const ASSETS = [
   './',
   './index.html',
@@ -21,6 +21,24 @@ const ASSETS = [
   './word-match-game.html',
   './manifest.json',
   './icon.svg',
+  './assets/companions/pixel/dino-l1.png',
+  './assets/companions/pixel/dino-l2.png',
+  './assets/companions/pixel/dino-l3.png',
+  './assets/companions/pixel/dino-l4.png',
+  './assets/companions/pixel/dino-l5.png',
+  './assets/companions/pixel/dino-l6.png',
+  './assets/companions/pixel/mecha-l1.png',
+  './assets/companions/pixel/mecha-l2.png',
+  './assets/companions/pixel/mecha-l3.png',
+  './assets/companions/pixel/mecha-l4.png',
+  './assets/companions/pixel/mecha-l5.png',
+  './assets/companions/pixel/mecha-l6.png',
+  './assets/companions/pixel/princess-l1.png',
+  './assets/companions/pixel/princess-l2.png',
+  './assets/companions/pixel/princess-l3.png',
+  './assets/companions/pixel/princess-l4.png',
+  './assets/companions/pixel/princess-l5.png',
+  './assets/companions/pixel/princess-l6.png',
   './assets/companions/dino.png',
   './assets/companions/mecha.png',
   './assets/companions/princess.png'
