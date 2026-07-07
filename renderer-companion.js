@@ -65,6 +65,11 @@ Object.assign(WordMatchGame.prototype, {
         // 由 greetCompanion() 播一次。
     },
 
+    // 平台输入框（解耦第③步：prompt 属于 BOM，从 game-companion.js 提取至此，行为零变化）
+    uiPromptCompanionName(cur) {
+        return prompt('给伙伴起个名字吧（最多6个字）', cur);
+    },
+
     uiRefreshCompanionShopIfOpen() {
         const shopModal = document.getElementById('shopModal');
         if (shopModal && shopModal.classList.contains('active')) this.renderShop('companion');

@@ -29,13 +29,7 @@ Object.assign(WordMatchGame.prototype, {
         if (this.audioUnlocked) return;
         this.audioUnlocked = true;
         this.sound.ensureContext();
-        if (window.speechSynthesis) {
-            this.sound.initVoices();
-            // 用一个空 utterance 解锁移动端 speech synthesis
-            const empty = new SpeechSynthesisUtterance('');
-            empty.volume = 0;
-            try { window.speechSynthesis.speak(empty); } catch(e){}
-        }
+        this.uiUnlockSpeechSynthesis();
     },
 
     toggleSound() {
@@ -54,8 +48,7 @@ Object.assign(WordMatchGame.prototype, {
             this.showToast('请在浏览器菜单里选择“添加到主屏幕”');
             return;
         }
-        this.deferredInstallPrompt.prompt();
-        await this.deferredInstallPrompt.userChoice;
+        await this.uiTriggerInstallPrompt();
         this.deferredInstallPrompt = null;
         this.uiHideInstallCard();
     }

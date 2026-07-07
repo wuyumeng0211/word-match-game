@@ -208,6 +208,22 @@ Object.assign(WordMatchGame.prototype, {
         if (card) card.classList.remove('show');
     },
 
+    // ===== 平台能力提取（解耦第③步：window/BOM 调用从 game-ui.js 收拢至此，行为零变化）=====
+    // 用一个空 utterance 解锁移动端 speech synthesis
+    uiUnlockSpeechSynthesis() {
+        if (!window.speechSynthesis) return;
+        this.sound.initVoices();
+        const empty = new SpeechSynthesisUtterance('');
+        empty.volume = 0;
+        try { window.speechSynthesis.speak(empty); } catch(e){}
+    },
+
+    // 触发 PWA 安装弹窗（beforeinstallprompt 事件对象的 prompt/userChoice 属于 BOM）
+    async uiTriggerInstallPrompt() {
+        this.deferredInstallPrompt.prompt();
+        await this.deferredInstallPrompt.userChoice;
+    },
+
     // ===== 整体搬迁自 game-modes.js =====
     updateTimedUI() {
         document.getElementById('level').textContent = '限时';

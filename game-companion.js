@@ -109,7 +109,7 @@ Object.assign(WordMatchGame.prototype, {
             return;
         }
         const cur = this.getCompanionName(id);
-        const input = prompt('给伙伴起个名字吧（最多6个字）', cur);
+        const input = this.uiPromptCompanionName(cur);
         if (input === null) return;
         const name = input.trim().slice(0, 6);
         if (!name) { this.showToast('名字不能为空哦'); return; }
