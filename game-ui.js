@@ -7,6 +7,21 @@ Object.assign(WordMatchGame.prototype, {
         setTimeout(() => el.classList.remove('show'), 2000);
     },
 
+    applySkin() {
+        if (this.skin === 'pixel') {
+            document.body.dataset.skin = 'pixel';
+        } else {
+            delete document.body.dataset.skin;
+        }
+    },
+
+    toggleSkin() {
+        this.skin = this.skin === 'pixel' ? 'classic' : 'pixel';
+        this.saveGlobal();
+        this.applySkin();
+        this.showToast(this.skin === 'pixel' ? '🕹️ 已切换到像素风格' : '🎨 已切换到经典风格');
+    },
+
     showModal(type) {
         const modal = document.getElementById('modal');
         const icon = document.getElementById('modalIcon');

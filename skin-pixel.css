@@ -1,0 +1,475 @@
+/* ============================================================
+   skin-pixel.css — 复古像素学习机皮肤（Retro Pixel Study Unit）
+   ------------------------------------------------------------
+   架构约定：所有规则严格限定在 body[data-skin="pixel"] 作用域下。
+   未设置该属性时，本文件对页面零影响。皮肤切换机制由外部接线。
+
+   ── Design Tokens（供未来 Canvas 版复用）──
+   基底色：
+     --px-paper        #f8f3ef   暖纸底色（页面/容器背景）
+     --px-panel        #fffdf8   面板色（卡片/棋盘/弹窗）
+     --px-panel-dim    #f1e8dd   暗面板（进度槽/待填格/次级按钮）
+     --px-ink          #4a3b2f   墨色（文字/边框/硬投影）
+     --px-soft         #96826d   浅墨（次级文字/标签）
+     --px-shadow-soft  #e0d2c0   软投影色（大面板双层投影的外层）
+     --px-dot          #e7dccd   LCD 网点色（12px 间距、1px 点、约 50% 透明）
+   八色扁平降饱和色板（字母块/图标底）：
+     --px-red #c76f5f  --px-orange #d79a52  --px-yellow #c9b45c
+     --px-green #8ca872  --px-teal #6fa39b  --px-blue #7c94b6
+     --px-purple #9d87ae  --px-pink #c48fa0
+   像素三件套：
+     边框   2px solid var(--px-ink)
+     圆角   4px（小元素 2px）
+     硬投影 2px 2px 0 var(--px-ink)；大面板 3px 3px 0 var(--px-shadow-soft)
+            + 3px 3px 0 1px var(--px-ink) 双层
+   按下态：去投影 + translate(2px,2px)
+   字体：英文/数字 = monospace 栈 + 900 + 大字距（PWA 离线，不引外链字体）
+         中文 = 黑体 900
+   ------------------------------------------------------------
+   tile 配色实现说明：现有 tile 的 background 由 JS 以内联
+   !important 写入，样式表无法覆盖；本皮肤改用 .tile::before
+   （position:absolute; z-index:-1，绘制层位于父元素背景之上、
+   文字之下）铺八色扁平色。26 字母按 8 色循环映射。
+   当勾选「色弱辅助纹理」(#colorBlindToggle) 时通过 :has() 退回
+   原始纹理配色（仅保留像素外形），避免遮盖辅助纹理。
+   ============================================================ */
+
+body[data-skin="pixel"] {
+    /* tokens */
+    --px-paper: #f8f3ef;
+    --px-panel: #fffdf8;
+    --px-panel-dim: #f1e8dd;
+    --px-ink: #4a3b2f;
+    --px-soft: #96826d;
+    --px-shadow-soft: #e0d2c0;
+    --px-dot: #e7dccd;
+    --px-red: #c76f5f;
+    --px-orange: #d79a52;
+    --px-yellow: #c9b45c;
+    --px-green: #8ca872;
+    --px-teal: #6fa39b;
+    --px-blue: #7c94b6;
+    --px-purple: #9d87ae;
+    --px-pink: #c48fa0;
+    --px-radius: 4px;
+    --px-border: 2px solid var(--px-ink);
+    --px-shadow: 2px 2px 0 var(--px-ink);
+    --px-shadow-panel: 3px 3px 0 var(--px-shadow-soft), 3px 3px 0 1px var(--px-ink);
+    --px-font-en: "Courier New", Courier, ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --px-font-zh: "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", sans-serif;
+
+    /* 背景：暖纸（!important 压过 applyTheme 写在 body 上的内联渐变） */
+    background: var(--px-paper) !important;
+    color: var(--px-ink);
+    font-family: var(--px-font-zh);
+}
+
+/* ── 主容器：暖纸 + LCD 网点（借用现有 ::before 覆盖层画网点） ── */
+body[data-skin="pixel"] .game-container {
+    background: var(--px-paper);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow-panel);
+}
+body[data-skin="pixel"] .game-container::before {
+    background: radial-gradient(var(--px-dot) 1px, transparent 1px);
+    background-size: 12px 12px;
+    opacity: 0.5;
+}
+
+/* ── 标题区 ── */
+body[data-skin="pixel"] .game-title {
+    font-family: var(--px-font-zh);
+    font-weight: 900;
+    color: var(--px-ink);
+    letter-spacing: 7px;
+    text-indent: 7px;
+    text-shadow: none;
+}
+body[data-skin="pixel"] .game-subtitle {
+    font-family: var(--px-font-en);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--px-soft);
+    text-transform: uppercase;
+}
+
+/* ── 顶部统计栏（对局） ── */
+body[data-skin="pixel"] .level-info {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow-panel);
+}
+body[data-skin="pixel"] .info-label {
+    color: var(--px-soft);
+    letter-spacing: 2px;
+    font-weight: 700;
+}
+body[data-skin="pixel"] .info-value {
+    font-family: var(--px-font-en);
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--px-ink);
+}
+
+/* ── 主菜单统计栏 ── */
+body[data-skin="pixel"] .stats-grid .stats-item {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+}
+body[data-skin="pixel"] .stats-item .num {
+    font-family: var(--px-font-en);
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .stats-item .label {
+    color: var(--px-soft);
+    letter-spacing: 2px;
+}
+
+/* ── 模式卡 ── */
+body[data-skin="pixel"] .mode-card {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow-panel);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+body[data-skin="pixel"] .mode-card:hover {
+    transform: translate(1px, 1px);
+    border-color: var(--px-ink);
+    box-shadow: 2px 2px 0 var(--px-shadow-soft), 2px 2px 0 1px var(--px-ink);
+}
+body[data-skin="pixel"] .mode-card:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+}
+body[data-skin="pixel"] .mode-card .name {
+    font-family: var(--px-font-zh);
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .mode-card .desc { color: var(--px-soft); }
+body[data-skin="pixel"] .mode-card.daily {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-left: 8px solid var(--px-teal);
+}
+body[data-skin="pixel"] .mode-card.daily::after {
+    background: var(--px-red);
+    color: var(--px-panel);
+    border: 2px solid var(--px-ink);
+    border-radius: 2px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+/* ── 目标单词区 ── */
+body[data-skin="pixel"] .target-word-section {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow-panel);
+}
+body[data-skin="pixel"] .target-label {
+    color: var(--px-soft);
+    letter-spacing: 3px;
+    font-weight: 700;
+}
+body[data-skin="pixel"] #chineseMeaning {
+    color: var(--px-ink) !important;
+    font-weight: 900 !important;
+    letter-spacing: 2px;
+}
+body[data-skin="pixel"] .progress-meta { color: var(--px-soft); letter-spacing: 1px; }
+body[data-skin="pixel"] .progress-meta.mastery { color: var(--px-soft); }
+
+/* ── 目标字母格 .letter-slot ── */
+body[data-skin="pixel"] .letter-slot {
+    border-radius: var(--px-radius);
+    font-family: var(--px-font-en);
+    font-weight: 900;
+    transition: none;
+}
+body[data-skin="pixel"] .letter-slot.pending {
+    background: var(--px-panel-dim);
+    border: 2px dashed #b7a58e;
+    color: #c4b39d;
+}
+body[data-skin="pixel"] .letter-slot.collected {
+    background: var(--px-green);
+    border: var(--px-border);
+    color: var(--px-panel);
+    transform: none;
+    box-shadow: var(--px-shadow);
+    text-shadow: none;
+}
+body[data-skin="pixel"] .target-word.long-word .letter-slot { border-radius: var(--px-radius); }
+
+/* ── 进度条 / 掌握度条 / 计时条：加边框、扁平填充 ── */
+body[data-skin="pixel"] .progress-bar,
+body[data-skin="pixel"] .mastery-bar,
+body[data-skin="pixel"] .timer-bar {
+    height: 10px;
+    background: var(--px-panel-dim);
+    border: var(--px-border);
+    border-radius: 2px;
+}
+body[data-skin="pixel"] .progress-fill { background: var(--px-green); border-radius: 0; }
+body[data-skin="pixel"] .mastery-fill { background: var(--px-purple); border-radius: 0; }
+body[data-skin="pixel"] .timer-fill { background: var(--px-red); border-radius: 0; }
+
+/* ── 棋盘 ── */
+body[data-skin="pixel"] .game-board {
+    background: var(--px-panel) !important;
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow-panel);
+    padding: 8px;
+    gap: 6px;
+}
+
+/* ── 字母块 .tile：像素三件套（外形部分始终生效） ── */
+body[data-skin="pixel"] .tile {
+    border: var(--px-border) !important;   /* 压过 JS 内联 border */
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+    font-family: var(--px-font-en);
+    font-weight: 900;
+    font-size: 19px;
+    letter-spacing: 1px;
+    /* 显式建立 stacking context，保证 ::before(z-index:-1) 落在
+       本元素背景之上而不是被吞进祖先层级（不依赖 will-change 副作用） */
+    isolation: isolate;
+}
+/* 配色部分：非色弱模式下，用 ::before 铺八色扁平色（内联 background
+   带 !important 无法从样式表覆盖，::before 在父背景之上、文字之下） */
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile {
+    color: var(--px-panel) !important;
+    text-shadow: 1px 1px 0 rgba(74, 59, 47, 0.35) !important;
+}
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: 2px;
+    background: var(--px-blue);
+}
+/* 26 字母 → 8 色循环映射（相邻字母不同色） */
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-a::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-i::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-q::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-y::before { background: var(--px-red); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-b::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-j::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-r::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-z::before { background: var(--px-orange); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-c::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-k::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-s::before { background: var(--px-yellow); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-d::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-l::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-t::before { background: var(--px-green); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-e::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-m::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-u::before { background: var(--px-teal); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-f::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-n::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-v::before { background: var(--px-blue); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-g::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-o::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-w::before { background: var(--px-purple); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-h::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-p::before,
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-x::before { background: var(--px-pink); }
+
+/* 选中按下态：去投影 + 平移 + 墨色描边（mockup .tile.sel） */
+body[data-skin="pixel"] .tile.selected {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+    outline: 2px solid var(--px-ink);
+    outline-offset: 0;
+}
+body[data-skin="pixel"] .tile:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+@media (hover: hover) {
+    body[data-skin="pixel"] .tile:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--px-ink); }
+    body[data-skin="pixel"] .tile.selected:hover { transform: translate(2px, 2px); box-shadow: none; }
+}
+body[data-skin="pixel"] .tile.hint {
+    box-shadow: 0 0 0 3px var(--px-orange), var(--px-shadow);
+}
+body[data-skin="pixel"] .tile.bomb-target {
+    box-shadow: 0 0 0 3px var(--px-red), var(--px-shadow);
+}
+
+/* ── 按钮 .btn：像素三件套 + 按下态 ── */
+body[data-skin="pixel"] .btn {
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+    background: var(--px-panel);
+    color: var(--px-ink);
+    font-family: var(--px-font-zh);
+    font-weight: 900;
+    letter-spacing: 1px;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+body[data-skin="pixel"] .btn:hover {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 var(--px-ink);
+}
+body[data-skin="pixel"] .btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+}
+body[data-skin="pixel"] .btn-primary { background: var(--px-orange); color: var(--px-panel); }
+body[data-skin="pixel"] .btn-secondary { background: var(--px-panel); color: var(--px-ink); border: var(--px-border); }
+body[data-skin="pixel"] .btn-hint { background: var(--px-yellow); color: var(--px-ink); }
+body[data-skin="pixel"] .btn-bomb { background: var(--px-red); color: var(--px-panel); }
+body[data-skin="pixel"] .btn-control-soft { background: var(--px-panel-dim); color: var(--px-ink); border: var(--px-border); }
+body[data-skin="pixel"] .btn-menu { background: var(--px-panel-dim); color: var(--px-ink); border: var(--px-border); }
+body[data-skin="pixel"] .btn-sound.off { background: var(--px-panel-dim); color: var(--px-soft); }
+body[data-skin="pixel"] .btn:disabled,
+body[data-skin="pixel"] .btn-hint:disabled,
+body[data-skin="pixel"] .btn-bomb:disabled {
+    background: var(--px-panel-dim);
+    color: var(--px-soft);
+    border: 2px solid var(--px-soft);
+    box-shadow: none;
+    transform: none;
+}
+
+/* ── 小工具条 / 提示文字 ── */
+body[data-skin="pixel"] .utility-chip {
+    background: var(--px-panel);
+    color: var(--px-ink);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+    font-weight: 900;
+}
+body[data-skin="pixel"] .utility-chip:active { transform: translate(2px, 2px); box-shadow: none; }
+body[data-skin="pixel"] .utility-chip:disabled { box-shadow: none; border-color: var(--px-soft); color: var(--px-soft); }
+body[data-skin="pixel"] .hint-text { color: var(--px-soft); letter-spacing: 1px; }
+
+/* ── 弹窗 .modal ── */
+body[data-skin="pixel"] .modal { background: rgba(74, 59, 47, 0.55); }
+body[data-skin="pixel"] .modal-content {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: 4px 4px 0 var(--px-shadow-soft), 4px 4px 0 1px var(--px-ink);
+}
+body[data-skin="pixel"] .modal-title {
+    font-family: var(--px-font-zh);
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .modal-text { color: var(--px-soft); }
+body[data-skin="pixel"] .sentence-box {
+    background: var(--px-panel-dim);
+    border: var(--px-border);
+    border-left: 8px solid var(--px-teal);
+    border-radius: var(--px-radius);
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .sentence-box .cn { color: var(--px-soft); }
+body[data-skin="pixel"] .word-detail h3 {
+    font-family: var(--px-font-en);
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .word-detail .phonetic { font-family: var(--px-font-en); color: var(--px-soft); }
+body[data-skin="pixel"] .mastery-pill {
+    background: var(--px-panel-dim);
+    color: var(--px-ink);
+    border: 2px solid var(--px-ink);
+    border-radius: 2px;
+}
+
+/* ── 陪伴角色坞 ── */
+body[data-skin="pixel"] .companion-dock {
+    background: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+}
+body[data-skin="pixel"] .companion-bubble { background: var(--px-panel-dim); color: var(--px-ink); border-radius: var(--px-radius); }
+body[data-skin="pixel"] .companion-bubble.show::before { background: var(--px-panel-dim); }
+body[data-skin="pixel"] .companion-bubble .bubble-en { color: var(--px-ink); }
+body[data-skin="pixel"] .companion-bubble .bubble-zh { color: var(--px-soft); }
+body[data-skin="pixel"] .companion-name { color: var(--px-ink); font-weight: 900; }
+body[data-skin="pixel"] .companion-effect { color: var(--px-soft); }
+body[data-skin="pixel"] .companion-level { color: var(--px-soft); font-family: var(--px-font-en); }
+body[data-skin="pixel"] .companion-growth { background: var(--px-panel-dim); border: 1px solid var(--px-ink); border-radius: 2px; }
+body[data-skin="pixel"] .companion-growth-fill { background: var(--px-green); border-radius: 0; }
+body[data-skin="pixel"] .companion-use {
+    background: var(--px-teal);
+    color: var(--px-panel);
+    border: var(--px-border);
+    border-radius: var(--px-radius);
+    box-shadow: var(--px-shadow);
+    font-weight: 900;
+}
+body[data-skin="pixel"] .companion-use:active { transform: translate(2px, 2px); box-shadow: none; }
+body[data-skin="pixel"] .companion-use:disabled { background: var(--px-panel-dim); color: var(--px-soft); box-shadow: none; }
+body[data-skin="pixel"] .companion-rename,
+body[data-skin="pixel"] .companion-voice { background: var(--px-panel-dim); color: var(--px-ink); border-radius: 2px; }
+
+/* ── 冒险地图 / 成就 / 其他面板 ── */
+body[data-skin="pixel"] .level-node { border-radius: var(--px-radius); font-family: var(--px-font-en); font-weight: 900; }
+body[data-skin="pixel"] .level-node.passed { background: var(--px-green); color: var(--px-panel); border: 2px solid var(--px-ink); }
+body[data-skin="pixel"] .level-node.current { background: var(--px-orange); color: var(--px-panel); border: 2px solid var(--px-ink); box-shadow: var(--px-shadow); }
+body[data-skin="pixel"] .level-node.locked { background: var(--px-panel-dim); color: #c4b39d; border: 2px dashed #b7a58e; }
+body[data-skin="pixel"] .achievement-card { background: var(--px-panel); border: 2px dashed #b7a58e; border-radius: var(--px-radius); }
+body[data-skin="pixel"] .achievement-card.unlocked { background: var(--px-panel); border: var(--px-border); box-shadow: var(--px-shadow); }
+body[data-skin="pixel"] .achievement-card .name { color: var(--px-ink); }
+body[data-skin="pixel"] .achievement-card .desc { color: var(--px-soft); }
+body[data-skin="pixel"] .install-card { background: var(--px-panel); border: var(--px-border); border-radius: var(--px-radius); box-shadow: var(--px-shadow); }
+body[data-skin="pixel"] .install-card .title { color: var(--px-ink); }
+body[data-skin="pixel"] .install-card .desc { color: var(--px-soft); }
+body[data-skin="pixel"] .setting-toggle { background: var(--px-panel); border: 2px solid var(--px-ink); border-radius: var(--px-radius); color: var(--px-ink); }
+body[data-skin="pixel"] .setting-toggle input { accent-color: var(--px-green); }
+body[data-skin="pixel"] .equip-tag { background: var(--px-panel); border: 1px solid var(--px-ink); border-radius: 2px; color: var(--px-ink); }
+body[data-skin="pixel"] .save-indicator { background: var(--px-ink); color: var(--px-panel); border-radius: 2px; font-family: var(--px-font-en); letter-spacing: 1px; }
+body[data-skin="pixel"] .vocab-item { border-bottom: 2px dashed #d8c9b6; }
+body[data-skin="pixel"] .vocab-item .word-text { font-family: var(--px-font-en); font-weight: 900; color: var(--px-ink); }
+body[data-skin="pixel"] .vocab-item .word-cn { color: var(--px-soft); }
+body[data-skin="pixel"] .dot { background: #d8c9b6; border-radius: 2px; }
+body[data-skin="pixel"] .dot.active { background: var(--px-ink); transform: scale(1.2); }
+body[data-skin="pixel"] .report-card,
+body[data-skin="pixel"] .report-section { background: var(--px-panel); border: var(--px-border); border-radius: var(--px-radius); }
+body[data-skin="pixel"] .report-card .num { color: var(--px-ink); font-family: var(--px-font-en); }
+body[data-skin="pixel"] .shop-tab { background: var(--px-panel-dim); color: var(--px-ink); border: 2px solid var(--px-ink); border-radius: var(--px-radius); }
+body[data-skin="pixel"] .shop-tab.active { background: var(--px-ink); color: var(--px-panel); }
+body[data-skin="pixel"] .shop-card { background: var(--px-panel); border: var(--px-border); border-radius: var(--px-radius); }
+body[data-skin="pixel"] .shop-score { color: var(--px-ink); font-family: var(--px-font-en); }
+
+/* ── emoji 图标轻处理：降一点彩度、提一点对比，向像素风靠拢 ── */
+body[data-skin="pixel"] .mode-card .icon,
+body[data-skin="pixel"] .modal-icon,
+body[data-skin="pixel"] .achievement-card.unlocked .icon,
+body[data-skin="pixel"] .companion-mood {
+    filter: grayscale(0.15) contrast(1.1) saturate(0.85);
+}
+
+/* ── 进化弹窗标题：渐变文字改为墨色，符合扁平像素语言 ── */
+body[data-skin="pixel"] .evolve-title {
+    background: none;
+    -webkit-background-clip: initial;
+    background-clip: initial;
+    color: var(--px-ink);
+}
+body[data-skin="pixel"] .evolve-label { color: var(--px-ink); }
