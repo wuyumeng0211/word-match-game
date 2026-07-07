@@ -1,0 +1,19 @@
+{
+    "description": "单词消消乐 微信小游戏（解耦第④步脚手架）",
+    "appid": "touristappid",
+    "projectname": "word-match-game",
+    "compileType": "game",
+    "libVersion": "3.4.0",
+    "setting": {
+        "es6": true,
+        "enhance": true,
+        "postcss": false,
+        "minified": false,
+        "urlCheck": false,
+        "ignoreDevUnusedFiles": false,
+        "ignoreUploadUnusedFiles": true
+    },
+    "simulatorType": "wechat",
+    "simulatorPluginLibVersion": {},
+    "condition": {}
+}

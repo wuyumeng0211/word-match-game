@@ -7,3 +7,7 @@ __pycache__/
 
 # Nested independent repo (has its own git remote) — do not embed
 youdianweixian-game/
+
+# 小游戏构建产物（tools/build-minigame.sh 生成，勿手改）
+minigame/js/core/
+minigame/audio/
