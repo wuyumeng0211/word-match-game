@@ -14,9 +14,9 @@ const LETTER_COLOR_PALETTE = [
     { bg:'#005ab5', bg2:'#3f8fd8', fg:'#ffffff', border:'#003f80' },
     { bg:'#009e73', bg2:'#42c69e', fg:'#ffffff', border:'#006f51' },
     { bg:'#d81b60', bg2:'#ec6793', fg:'#ffffff', border:'#a50f45' },
-    { bg:'#000000', bg2:'#4b5563', fg:'#ffffff', border:'#000000' },
+    { bg:'#3b3663', bg2:'#6b64a0', fg:'#ffffff', border:'#2a264a' },
     { bg:'#ff7f00', bg2:'#ffb24d', fg:'#ffffff', border:'#b85c00' },
-    { bg:'#ffff33', bg2:'#fff98a', fg:'#3f3f00', border:'#b5ad00' },
+    { bg:'#f0d264', bg2:'#f7e49c', fg:'#4a3a00', border:'#a88c2c' },
     { bg:'#0067b9', bg2:'#3b9ae1', fg:'#ffffff', border:'#004d8a' },
     { bg:'#e87500', bg2:'#f7ad45', fg:'#ffffff', border:'#a94f00' },
     { bg:'#008f5a', bg2:'#40c98c', fg:'#ffffff', border:'#006b43' },
@@ -39,11 +39,11 @@ const CORE_LETTER_COLORS = LETTER_COLOR_PALETTE.slice(0, 6);
 
 const LETTER_PATTERNS = [
     '',
-    'repeating-linear-gradient(135deg, rgba(255,255,255,.16) 0 4px, transparent 4px 12px)',
-    'repeating-linear-gradient(0deg, rgba(255,255,255,.14) 0 3px, transparent 3px 11px)',
-    'radial-gradient(circle at 22% 24%, rgba(255,255,255,.22) 0 3px, transparent 3px)',
-    'repeating-linear-gradient(90deg, rgba(255,255,255,.13) 0 3px, transparent 3px 12px)',
-    'repeating-linear-gradient(45deg, rgba(255,255,255,.12) 0 2px, transparent 2px 9px)'
+    'repeating-linear-gradient(135deg, rgba(255,255,255,.12) 0 4px, transparent 4px 12px)',
+    'repeating-linear-gradient(0deg, rgba(255,255,255,.11) 0 3px, transparent 3px 11px)',
+    'radial-gradient(circle at 22% 24%, rgba(255,255,255,.14) 0 3px, transparent 3px)',
+    'repeating-linear-gradient(90deg, rgba(255,255,255,.10) 0 3px, transparent 3px 12px)',
+    'repeating-linear-gradient(45deg, rgba(255,255,255,.10) 0 2px, transparent 2px 9px)'
 ];
 
 const ACHIEVEMENTS = [

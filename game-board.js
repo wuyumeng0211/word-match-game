@@ -449,7 +449,7 @@ Object.assign(WordMatchGame.prototype, {
                 }
             }
             if (collectedAny) this.sound.play('collect');
-            this.sound.play('match');
+            this.sound.play('match', combo);
             const pts = matches.length * 10 * combo;
             this.score += pts;
 
