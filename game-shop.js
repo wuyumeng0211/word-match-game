@@ -138,6 +138,12 @@ Object.assign(WordMatchGame.prototype, {
     },
 
     applyEquippedTheme() {
+        // 在关卡内切换装备时，统一走 applyTheme 的优先级逻辑（商店主题 > 关卡主题），并同步 body 背景
+        if (document.body.classList.contains('in-game')) {
+            this.applyTheme();
+            return;
+        }
+        // 主菜单：只更新主题变量做预览，不染 body（菜单保持默认米色）
         const item = SHOP_ITEMS.find(i => i.id === this.equippedTheme);
         if (item && item.colors) {
             const root = document.documentElement;
