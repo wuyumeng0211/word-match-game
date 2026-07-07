@@ -6,6 +6,8 @@
 
 body[data-skin="pixel"] .companion-avatar { background-repeat: no-repeat; background-position: center; background-size: contain; image-rendering: pixelated; }
 body[data-skin="pixel"] .companion-avatar .companion-sprite { display: none; }
+/* 心情 emoji 与像素语言冲突且无功能，像素皮肤下移除（大众皮肤保留原设计） */
+body[data-skin="pixel"] .companion-mood { display: none; }
 /* 关掉大众皮肤的伪元素配件与滤镜，进化表现全部由变体图承担 */
 body[data-skin="pixel"] .companion-avatar::before, body[data-skin="pixel"] .companion-avatar::after { display: none !important; }
 body[data-skin="pixel"] .companion-avatar { filter: none; animation: none; }
