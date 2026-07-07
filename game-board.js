@@ -129,8 +129,63 @@ Object.assign(WordMatchGame.prototype, {
             }
         }
         this.removeInitialMatches();
-        if (!this.hasAnyValidMove() && (_depth || 0) < 20) return this.generateBoard((_depth || 0) + 1);
+        if (!this.hasAnyValidMove()) {
+            if ((_depth || 0) < 5) return this.generateBoard((_depth || 0) + 1);
+            this.plantGuaranteedMove();
+        }
         this.buildLetterColorMap();
+    },
+
+    // 选一个"还没收集到的目标字母"作为植入字母，保证死锁恢复后仍能推进拼词
+    pickPlantLetter() {
+        const needed = [];
+        const got = {};
+        for (const ch of this.targetWord) {
+            got[ch] = (got[ch] || 0) + 1;
+            if ((this.collectedLetters[ch] || 0) < got[ch]) needed.push(ch);
+        }
+        const src = needed.length ? needed : this.targetWord.split('');
+        return src[Math.floor(Math.random() * src.length)];
+    },
+
+    // 构造式保证可玩：种下 L·L 横排 + 下方中间一个 L，交换一次即成三连。
+    // 随机重掷可能连续失败，构造式植入必然成功——这是死板的最终兜底。
+    plantGuaranteedMove() {
+        const L = this.pickPlantLetter();
+        for (let attempt = 0; attempt < 12; attempt++) {
+            const r = Math.floor(Math.random() * (this.boardSize - 1));
+            const c = Math.floor(Math.random() * (this.boardSize - 2));
+            const cells = [[r, c], [r, c + 1], [r, c + 2], [r + 1, c + 1]];
+            const backup = cells.map(([rr, cc]) => this.board[rr][cc]);
+            this.board[r][c] = L;
+            this.board[r][c + 2] = L;
+            this.board[r + 1][c + 1] = L;
+            if (this.board[r][c + 1] === L) {
+                this.board[r][c + 1] = this.getLetterPool().find(x => x !== L) || 'X';
+            }
+            if (this.findMatches().length === 0 && this.hasAnyValidMove()) return true;
+            // 植入意外形成了现成三连：还原，换个位置重试
+            cells.forEach(([rr, cc], i) => { this.board[rr][cc] = backup[i]; });
+        }
+        this.removeInitialMatches();
+        return false;
+    },
+
+    // 死锁恢复：保留现有字母重新洗牌（而非整盘重掷），玩家的字母分布不突变
+    reshuffleBoard(showTip) {
+        const letters = this.board.flat();
+        for (let i = letters.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [letters[i], letters[j]] = [letters[j], letters[i]];
+        }
+        let k = 0;
+        for (let r = 0; r < this.boardSize; r++) {
+            for (let c = 0; c < this.boardSize; c++) this.board[r][c] = letters[k++];
+        }
+        this.removeInitialMatches();
+        if (!this.hasAnyValidMove()) this.plantGuaranteedMove();
+        this.buildLetterColorMap();
+        if (showTip) this.showToast('没有可消除的组合，已自动洗牌');
     },
 
     removeInitialMatches() {
@@ -430,7 +485,7 @@ Object.assign(WordMatchGame.prototype, {
             matches = this.findMatches();
         }
         if (matches.length === 0 && !this.hasAnyValidMove()) {
-            this.generateBoard();
+            this.reshuffleBoard(true);
             this.renderBoard();
         }
         this.renderTarget();
