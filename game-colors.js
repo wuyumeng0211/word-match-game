@@ -80,7 +80,11 @@ Object.assign(WordMatchGame.prototype, {
         tile.style.setProperty('background', background, 'important');
         tile.style.color = color.fg;
         tile.style.border = `2px solid ${color.border}`;
-        tile.style.textShadow = '0 1px 2px rgba(0,0,0,0.28)';
+        // 浅色字（白）配深色描边，深色字（黄块）配浅色底衬，保证叠加花纹后仍可读
+        const darkFg = this.hexToLab(color.fg).l < 60;
+        tile.style.textShadow = darkFg
+            ? '0 0 3px rgba(255,255,255,0.65), 0 1px 2px rgba(255,255,255,0.5)'
+            : '0 0 3px rgba(0,0,0,0.55), 0 1px 2px rgba(0,0,0,0.45)';
     },
 
     spawnParticles(x, y, color) {

@@ -26,20 +26,25 @@ class SoundManager {
         if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
         if (this.ctx.state === 'suspended') this.ctx.resume();
     }
-    play(type) {
+    play(type, combo = 1) {
         if (!this.enabled) return;
         this.ensureContext();
         const ctx = this.ctx, now = ctx.currentTime;
-        const tone = (freq, dur, type='sine', vol=0.12) => {
+        const tone = (freq, dur, type='sine', vol=0.12, delay=0) => {
             const o = ctx.createOscillator(), g = ctx.createGain();
             o.connect(g); g.connect(ctx.destination);
-            o.type = type; o.frequency.setValueAtTime(freq, now);
-            g.gain.setValueAtTime(vol, now); g.gain.exponentialRampToValueAtTime(0.001, now+dur);
-            o.start(now); o.stop(now+dur);
+            const t0 = now + delay;
+            o.type = type; o.frequency.setValueAtTime(freq, t0);
+            g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+            o.start(t0); o.stop(t0+dur);
         };
         switch(type) {
             case 'swap': tone(600, 0.08); break;
-            case 'match': [523,659,784].forEach((f,i)=>tone(f,0.15,'sine',0.1)); break;
+            case 'match': {
+                const pitch = Math.pow(2, Math.min(combo - 1, 5) * 2 / 12);
+                [523,659,784].forEach((f,i)=>tone(f*pitch,0.15,'sine',0.1,i*0.05));
+                break;
+            }
             case 'collect': tone(880, 0.25, 'sine', 0.15); break;
             case 'win': [[523,659,784],[587,740,880],[659,830,988]].forEach((ch,i)=>ch.forEach(f=>tone(f,0.4,'triangle',0.06))); break;
             case 'lose': tone(200, 0.5, 'sawtooth', 0.08); break;
