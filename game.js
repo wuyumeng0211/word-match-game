@@ -48,6 +48,7 @@ class WordMatchGame {
         this.lastCompanionGreetDate = '';
         this.deferredInstallPrompt = null;
         this.letterColorMap = {};
+        this.skin = 'classic';
 
         this.wordLevels = WORD_LEVELS;
 
@@ -57,6 +58,7 @@ class WordMatchGame {
 
     init() {
         this.loadGlobalSave();
+        this.applySkin();
         this.bindEvents();
         this.updateGlobalStats();
         this.renderAchievements();
@@ -102,6 +104,7 @@ class WordMatchGame {
         document.querySelector('[data-action="vocab"]').addEventListener('click', () => this.showVocab());
         document.querySelector('[data-action="shop"]').addEventListener('click', () => this.openShop());
         document.querySelector('[data-action="report"]').addEventListener('click', () => this.showReport());
+        document.querySelector('[data-action="skin"]').addEventListener('click', () => this.toggleSkin());
         document.querySelector('[data-action="word-detail"]').addEventListener('click', () => this.showWordDetail());
         document.querySelectorAll('[data-tool]').forEach(btn => {
             btn.addEventListener('click', () => this.useTool(btn.dataset.tool));

@@ -17,13 +17,14 @@ body {
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    /* 居中交给 .game-container 的 margin:auto——内容高于视口时可正常滚动，
+       align-items:center 会把溢出顶部推到滚动区外（只能看到半截的根因） */
     padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
     color: var(--book-text);
     transition: background 0.5s ease;
 }
 .game-container {
+    margin: auto;
     background:
         linear-gradient(180deg, rgba(255,255,255,0.96), rgba(252,250,247,0.98));
     border: 1px solid rgba(215,200,188,0.85);

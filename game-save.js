@@ -38,6 +38,7 @@ Object.assign(WordMatchGame.prototype, {
                 this.companionVoiceOn = data.companionVoiceOn !== undefined ? data.companionVoiceOn : true;
                 this.mechaShieldMoves = data.mechaShieldMoves || 0;
                 this.lastCompanionGreetDate = data.lastCompanionGreetDate !== undefined ? data.lastCompanionGreetDate : '';
+                this.skin = data.skin || 'classic';
                 if (data.speakEnabled !== undefined) this.sound.speakEnabled = data.speakEnabled;
                 if (version < 2) {
                     this.nextBombAt = Math.max(this.nextBombAt, 8000);
@@ -81,6 +82,7 @@ Object.assign(WordMatchGame.prototype, {
             companionVoiceOn: this.companionVoiceOn,
             mechaShieldMoves: this.mechaShieldMoves,
             lastCompanionGreetDate: this.lastCompanionGreetDate,
+            skin: this.skin,
             speakEnabled: this.sound.speakEnabled,
             date: Date.now()
         };

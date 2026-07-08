@@ -367,7 +367,7 @@ Object.assign(WordMatchGame.prototype, {
 
     getCompanionAvatarHTML(companion, level) {
         return `<div class="companion-avatar ${companion.id} level-${level}">
-            <img class="companion-sprite" src="${companion.image}" alt="${companion.name}">
+            <img class="companion-sprite" src="${companion.image}" alt="${this._escapeHtml(this.getCompanionName(companion.id))}">
         </div>`;
     },
 

@@ -1,0 +1,42 @@
+/* 像素皮肤·伙伴 6 级进化形象
+ * 基底 = 朋友原版 256px 像素立绘（assets/companions/*.png），
+ * 变体 = gen.py 调色生成：L1 褪色素体 → L3 原版完全体 → L5/6 鎏金圣辉+光环。
+ * 原作精致度 100% 保留；重新生成变体：python3 gen.py <输出目录>。
+ * 全部规则限定 body[data-skin="pixel"]，大众皮肤零影响。 */
+
+body[data-skin="pixel"] .companion-avatar { background-repeat: no-repeat; background-position: center; background-size: contain; image-rendering: pixelated; }
+body[data-skin="pixel"] .companion-avatar .companion-sprite { display: none; }
+/* 心情 emoji 与像素语言冲突且无功能，像素皮肤下移除（大众皮肤保留原设计） */
+body[data-skin="pixel"] .companion-mood { display: none; }
+/* 关掉大众皮肤的伪元素配件与滤镜，进化表现全部由变体图承担 */
+body[data-skin="pixel"] .companion-avatar::before, body[data-skin="pixel"] .companion-avatar::after { display: none !important; }
+body[data-skin="pixel"] .companion-avatar { filter: none; animation: none; }
+
+body[data-skin="pixel"] .companion-avatar.dino.level-1 { background-image: url("assets/companions/pixel/dino-l1.png"); }
+body[data-skin="pixel"] .companion-avatar.dino.level-2 { background-image: url("assets/companions/pixel/dino-l2.png"); }
+body[data-skin="pixel"] .companion-avatar.dino.level-3 { background-image: url("assets/companions/pixel/dino-l3.png"); }
+body[data-skin="pixel"] .companion-avatar.dino.level-4 { background-image: url("assets/companions/pixel/dino-l4.png"); }
+body[data-skin="pixel"] .companion-avatar.dino.level-5 { background-image: url("assets/companions/pixel/dino-l5.png"); }
+body[data-skin="pixel"] .companion-avatar.dino.level-6 { background-image: url("assets/companions/pixel/dino-l6.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-1 { background-image: url("assets/companions/pixel/mecha-l1.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-2 { background-image: url("assets/companions/pixel/mecha-l2.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-3 { background-image: url("assets/companions/pixel/mecha-l3.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-4 { background-image: url("assets/companions/pixel/mecha-l4.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-5 { background-image: url("assets/companions/pixel/mecha-l5.png"); }
+body[data-skin="pixel"] .companion-avatar.mecha.level-6 { background-image: url("assets/companions/pixel/mecha-l6.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-1 { background-image: url("assets/companions/pixel/princess-l1.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-2 { background-image: url("assets/companions/pixel/princess-l2.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-3 { background-image: url("assets/companions/pixel/princess-l3.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-4 { background-image: url("assets/companions/pixel/princess-l4.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-5 { background-image: url("assets/companions/pixel/princess-l5.png"); }
+body[data-skin="pixel"] .companion-avatar.princess.level-6 { background-image: url("assets/companions/pixel/princess-l6.png"); }
+
+/* 高级辉光：克制的华丽预算，只给 4-6 级 */
+body[data-skin="pixel"] .companion-avatar.level-4 { filter: drop-shadow(0 0 3px rgba(124,148,182,.55)); }
+body[data-skin="pixel"] .companion-avatar.level-5 { filter: drop-shadow(0 0 4px rgba(232,193,90,.6)); }
+body[data-skin="pixel"] .companion-avatar.level-6 { filter: drop-shadow(0 0 5px rgba(232,193,90,.75)); }
+body:not(.reduce-motion)[data-skin="pixel"] .companion-avatar.level-6 { animation: pxCompanionPulse 2.4s steps(2) infinite; }
+@keyframes pxCompanionPulse {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(232,193,90,.55)); }
+    50% { filter: drop-shadow(0 0 8px rgba(232,193,90,.9)); }
+}
