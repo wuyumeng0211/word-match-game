@@ -22,6 +22,8 @@ Object.assign(WordMatchGame.prototype, {
         document.getElementById('gameScreen').style.display = 'none';
         document.getElementById('startScreen').style.display = 'block';
         document.body.classList.remove('in-game');
+        // 清掉内联背景，还原 style.css 中 body 的默认米色纸纹
+        document.body.style.background = '';
         this.updateGlobalStats();
         this.updateEquipBar();
     },
@@ -74,19 +76,11 @@ Object.assign(WordMatchGame.prototype, {
     },
 
     applyTheme() {
+        // 优先级：玩家装备的非默认商店主题 > 关卡主题
         const custom = SHOP_ITEMS.find(i => i.id === this.equippedTheme);
-        if (custom && custom.colors) {
-            const root = document.documentElement;
-            root.style.setProperty('--theme-bg', custom.colors.bg);
-            root.style.setProperty('--theme-primary', custom.colors.primary);
-            root.style.setProperty('--theme-target-bg', custom.colors.targetBg);
-            root.style.setProperty('--theme-target-border', custom.colors.targetBorder);
-            root.style.setProperty('--theme-select', custom.colors.select);
-            root.style.setProperty('--theme-board', custom.colors.board);
-            return;
-        }
+        const useCustom = custom && custom.colors && custom.id !== 'default_theme';
         const themeIndex = Math.min(Math.floor((this.level - 1) / 3), THEMES.length - 1);
-        const t = THEMES[themeIndex];
+        const t = useCustom ? custom.colors : THEMES[themeIndex];
         const root = document.documentElement;
         root.style.setProperty('--theme-bg', t.bg);
         root.style.setProperty('--theme-primary', t.primary);
@@ -94,6 +88,8 @@ Object.assign(WordMatchGame.prototype, {
         root.style.setProperty('--theme-target-border', t.targetBorder);
         root.style.setProperty('--theme-select', t.select);
         root.style.setProperty('--theme-board', t.board);
+        // 主题真正染到全屏：body 背景随主题渐变（CSS 已带 0.5s transition）
+        document.body.style.background = t.bg;
     },
 
     nextLevel() {
