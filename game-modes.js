@@ -1,13 +1,11 @@
-// 游戏模式与流程：闯关/限时/无尽/复习/每日挑战
+// 游戏模式与流程：闯关/限时/无尽/复习/每日挑战（DOM 渲染已迁至 renderer-screens.js）
 Object.assign(WordMatchGame.prototype, {
     selectMode(mode) {
         this.unlockAudio();
         this.markPlayDay();
         this.saveGlobal();
         this.gameMode = mode;
-        document.body.classList.add('in-game');
-        document.getElementById('startScreen').style.display = 'none';
-        document.getElementById('gameScreen').style.display = 'block';
+        this.uiShowGameScreen();
         this.startGame();
     },
 
@@ -17,13 +15,7 @@ Object.assign(WordMatchGame.prototype, {
         clearTimeout(this.autoHintTimer);
         this.bombMode = false;
         this.bombSelected = [];
-        document.getElementById('gameBoard').style.cursor = '';
-        document.querySelectorAll('.tile.bomb-target').forEach(t => t.classList.remove('bomb-target'));
-        document.getElementById('gameScreen').style.display = 'none';
-        document.getElementById('startScreen').style.display = 'block';
-        document.body.classList.remove('in-game');
-        // 清掉内联背景，还原 style.css 中 body 的默认米色纸纹
-        document.body.style.background = '';
+        this.uiShowStartScreen();
         this.updateGlobalStats();
         this.updateEquipBar();
     },
@@ -33,7 +25,7 @@ Object.assign(WordMatchGame.prototype, {
         this.score = 0;
         clearInterval(this.timedTimer);
         clearTimeout(this.autoHintTimer);
-        document.getElementById('modal').classList.remove('active');
+        this.uiHideModal();
 
         if (this.gameMode === 'story') {
             this.loadLevel();
@@ -81,15 +73,7 @@ Object.assign(WordMatchGame.prototype, {
         const useCustom = custom && custom.colors && custom.id !== 'default_theme';
         const themeIndex = Math.min(Math.floor((this.level - 1) / 3), THEMES.length - 1);
         const t = useCustom ? custom.colors : THEMES[themeIndex];
-        const root = document.documentElement;
-        root.style.setProperty('--theme-bg', t.bg);
-        root.style.setProperty('--theme-primary', t.primary);
-        root.style.setProperty('--theme-target-bg', t.targetBg);
-        root.style.setProperty('--theme-target-border', t.targetBorder);
-        root.style.setProperty('--theme-select', t.select);
-        root.style.setProperty('--theme-board', t.board);
-        // 主题真正染到全屏：body 背景随主题渐变（CSS 已带 0.5s transition）
-        document.body.style.background = t.bg;
+        this.renderTheme(t);
     },
 
     nextLevel() {
@@ -130,11 +114,11 @@ Object.assign(WordMatchGame.prototype, {
 
     startTimedMode() {
         clearInterval(this.timedTimer);
-        document.getElementById('timerBar').style.display = 'block';
+        this.uiShowTimerBar();
         this.timedTimer = setInterval(() => {
             this.timeLeft--;
             this.updateTimedUI();
-            document.getElementById('timerFill').style.width = (this.timeLeft / 60 * 100) + '%';
+            this.renderTimerFill();
             if (this.timeLeft <= 10) this.sound.play('tick');
             if (this.timeLeft <= 0) {
                 clearInterval(this.timedTimer);
@@ -142,36 +126,5 @@ Object.assign(WordMatchGame.prototype, {
                 this.showModal('lose');
             }
         }, 1000);
-    },
-
-    updateTimedUI() {
-        document.getElementById('level').textContent = '限时';
-        document.getElementById('moves').textContent = this.timeLeft + 's';
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('labelLevel').textContent = '模式';
-        document.getElementById('labelMoves').textContent = '剩余';
-        document.getElementById('timerBar').style.display = 'block';
-        this.updateBombUI();
-        this.updateToolUI();
-    },
-
-    updateEndlessUI() {
-        document.getElementById('level').textContent = '无尽';
-        document.getElementById('moves').textContent = this.endlessWords;
-        document.getElementById('score').textContent = this.score;
-        document.getElementById('labelLevel').textContent = '模式';
-        document.getElementById('labelMoves').textContent = '已拼';
-        document.getElementById('timerBar').style.display = 'none';
-        this.updateBombUI();
-        this.updateToolUI();
-    },
-
-    updateDailyCard() {
-        const el = document.getElementById('dailyDesc');
-        if (!el) return;
-        const today = this.getDateKey();
-        el.innerHTML = this.dailyCompletions[today]
-            ? '今日已完成<br>明天再来挑战'
-            : '每天固定3个单词<br>完成奖励800分';
     }
 });

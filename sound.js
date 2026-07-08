@@ -56,17 +56,6 @@ class SoundManager {
         if (!this.speakEnabled) return;
         if (!window.speechSynthesis) return;
         this.initVoices();
-        // Chrome 真实环境 cancel()+speak() 竞态会导致 utterance 被丢弃，
-        // 因此不再 cancel——让例句在 speech 队列里排队播放，宁可等一秒也不丢语音。
-        try { window.speechSynthesis.resume(); } catch(e){}
-        const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; u.rate = 0.85; u.volume = 1;
-        if (this.preferredVoice) u.voice = this.preferredVoice;
-        u.onstart = () => console.log('[TTS START]', text);
-        u.onend  = () => console.log('[TTS END]', text);
-        u.onerror = (e) => console.warn('[TTS ERROR]', text, e.error);
-        try {
-            window.speechSynthesis.speak(u);
-            console.log('[TTS QUEUED]', text, 'speaking=', window.speechSynthesis.speaking);
-        } catch(e) { console.warn('Speech synthesis failed:', e); }
+        SpeechAdapter.speak(text, { rate: 0.85, voice: this.preferredVoice });
     }
 }

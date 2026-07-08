@@ -1,4 +1,4 @@
-const CACHE_NAME = 'word-match-game-v15';
+const CACHE_NAME = 'word-match-game-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -18,6 +18,14 @@ const ASSETS = [
   './game-modes.js',
   './game-learning.js',
   './game-ui.js',
+  './events.js',
+  './adapter-storage.js',
+  './adapter-speech.js',
+  './renderer-board.js',
+  './renderer-screens.js',
+  './renderer-shop.js',
+  './renderer-companion.js',
+  './renderer-learning.js',
   './main.js',
   './manifest.json',
   './icon.svg',
