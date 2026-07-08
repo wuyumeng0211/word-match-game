@@ -30,10 +30,18 @@ const SpeechAdapter = {
 
     speakWithVoice(voiceCfg, text) {
         this.cancelSpeech();
+        const voice = this._pickVoice(voiceCfg);
+        let pitch = voiceCfg.pitch != null ? voiceCfg.pitch : 1;
+        // 女声角色（如星儿）但系统没有可用女声：选中的会是男声或性别未知的声音，
+        // 直接播会变成「老年男声」。此时强制拔高 pitch 伪装女声，避免破坏人设。
+        if (voiceCfg.gender === 'female') {
+            const g = voice ? this._guessGender(voice) : null;
+            if (g !== 'female') pitch = Math.max(pitch, 1.55);
+        }
         this._webSpeak(text, {
-            pitch: voiceCfg.pitch != null ? voiceCfg.pitch : 1,
+            pitch: pitch,
             rate:  voiceCfg.rate  != null ? voiceCfg.rate  : 1,
-            voice: this._pickVoice(voiceCfg)
+            voice: voice
         });
     },
 
@@ -84,9 +92,13 @@ const SpeechAdapter = {
         if (cfg.gender) {
             const match = enVoices.find(v => this._guessGender(v) === cfg.gender);
             if (match) return match;
-            const opposite = cfg.gender === 'male' ? 'female' : 'male';
-            const notOpposite = enVoices.find(v => this._guessGender(v) !== opposite);
-            if (notOpposite) return notOpposite;
+            // 找不到目标性别的声音时：只接受「性别未知」的声，绝不返回反性别声。
+            // 例如星儿(female)宁可退回未知声(再由 speakWithVoice 拔高 pitch)，
+            // 也不要主动选一个 male 声导致「老年男声」。
+            const neutral = enVoices.find(v => this._guessGender(v) === null);
+            if (neutral) return neutral;
+            // 全是反性别声：返回 null，让浏览器用系统默认声，pitch 补偿在上层处理。
+            return null;
         }
         return enVoices[0];
     }
