@@ -1,5 +1,13 @@
 // 通用 UI 逻辑：教程流程、成就解锁、开关状态（DOM 渲染已迁至 renderer-screens.js）
 Object.assign(WordMatchGame.prototype, {
+    applySkin() {
+        if (this.skin === 'pixel') {
+            document.body.dataset.skin = 'pixel';
+        } else {
+            delete document.body.dataset.skin;
+        }
+    },
+
     toggleSkin() {
         this.skin = this.skin === 'pixel' ? 'classic' : 'pixel';
         this.saveGlobal();
