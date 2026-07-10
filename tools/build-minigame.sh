@@ -43,6 +43,10 @@ ORDER=(
     game-learning.js
     game-ui.js
     renderer-canvas.js
+    renderer-canvas-shop.js
+    renderer-canvas-companion.js
+    renderer-canvas-tools.js
+    renderer-canvas-learn.js
 )
 
 BUNDLE="$CORE/bundle.js"

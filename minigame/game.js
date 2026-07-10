@@ -56,3 +56,9 @@ wx.onTouchStart((e) => forward('start', e));
 wx.onTouchMove((e) => forward('move', e));
 wx.onTouchEnd((e) => forward('end', e));
 wx.onTouchCancel((e) => forward('end', e));
+
+// ---- 8. 生命周期兜底：切后台立即落盘（wx.setStorageSync 同步写，无异步丢档窗口） ----
+// saveGlobal 在几乎所有状态变化点已被调用，此处只兜"动画/弹窗途中被切走"的残余场景。
+wx.onHide(() => {
+    try { if (typeof game.saveGlobal === 'function') game.saveGlobal(); } catch (e) { /* 存档兜底失败不阻塞退出 */ }
+});

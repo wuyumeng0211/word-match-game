@@ -110,6 +110,12 @@ const canvasImpl = {
         // move/end 当前交互模型（点选两格）不需要，保留入口以兼容拖拽扩展
     },
 
+    // 共享绘制工具包：本文件的 tokens/helpers 在 IIFE 内私有，
+    // renderer-canvas-*.js 子模块（商店/伙伴/道具/学习）经此取用，保证同一套像素语言
+    _pxKit() {
+        return { PX, F, panel, rr, wrapText, LETTER_COLORS, letterColor };
+    },
+
     _invalidate() {
         const cv = this._cv;
         if (!cv || cv.raf) return;
@@ -168,7 +174,14 @@ const canvasImpl = {
         cv.boardRect = null;
         cv.modalBtnRect = null;
         if (cv.screen === 'menu') this._drawMenu(ctx, cv);
-        else this._drawGame(ctx, cv);
+        else if (cv.screen === 'game') this._drawGame(ctx, cv);
+        else {
+            // 可扩展屏幕分发：子模块用 _drawScreen_<名字> 注册自己的整屏
+            //（如 _drawScreen_shop），设 cv.screen='shop' + _invalidate() 即可切换
+            const drawScreen = this['_drawScreen_' + cv.screen];
+            if (drawScreen) drawScreen.call(this, ctx, cv);
+            else this._drawGame(ctx, cv);
+        }
         if (cv.modal) this._drawModal(ctx, cv);
         this._drawToast(ctx, cv);
     },
@@ -279,6 +292,9 @@ const canvasImpl = {
             ctx.fillText(label, bx2 + btnW / 2, yb + btnH / 2 + 1);
             cv.hits.push({ x: bx2, y: yb, w: btnW, h: btnH, action });
         });
+        // 游戏屏扩展钩子：子模块（炸弹/道具工具条等）在此追加绘制与 hit 区，
+        // 传入按钮行底部 y 作为起笔线，避免与本函数的固定布局互踩
+        if (this._drawGameExtras) this._drawGameExtras(ctx, cv, yb + btnH);
         // 连击提示 / 分数飘字
         const now = performance.now();
         if (cv.combo && cv.combo.until > now) {
