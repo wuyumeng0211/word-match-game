@@ -89,6 +89,7 @@ const canvasImpl = {
             canvas.height = Math.round(cv.H * dpr);
             canvas.style.width = cv.W + 'px';
             canvas.style.height = cv.H + 'px';
+            cv.safeTop = this._safeAreaTop();  // 刘海屏安全区，随尺寸变化重新读取一次即可（不必逐帧查询）
             this._invalidate();
         };
         if (typeof window !== 'undefined' && window.addEventListener) window.addEventListener('resize', resize);
@@ -114,6 +115,18 @@ const canvasImpl = {
     // renderer-canvas-*.js 子模块（商店/伙伴/道具/学习）经此取用，保证同一套像素语言
     _pxKit() {
         return { PX, F, panel, rr, wrapText, LETTER_COLORS, letterColor };
+    },
+
+    // 刘海屏安全区：仅微信小游戏环境有 GameGlobal.wx，浏览器环境（本文件当前主要跑的环境）
+    // 直接落到 0，行为与改造前一致；wx API 用 try/catch 兜底防止个别机型/基础库缺字段时崩渲染
+    _safeAreaTop() {
+        try {
+            if (typeof GameGlobal !== 'undefined' && GameGlobal.wx && GameGlobal.wx.getSystemInfoSync) {
+                const info = GameGlobal.wx.getSystemInfoSync();
+                if (info && info.safeArea && typeof info.safeArea.top === 'number') return info.safeArea.top;
+            }
+        } catch (e) { /* 拿不到就当没有安全区，不影响浏览器/旧基础库 */ }
+        return 0;
     },
 
     _invalidate() {
@@ -186,43 +199,129 @@ const canvasImpl = {
         this._drawToast(ctx, cv);
     },
 
+    // 布局：安全区顶部起笔 → 标题/副标题 → 统计行 → 2列×2行模式卡(闯关/限时/无尽/复习)
+    // → 每日挑战整行(带完成态) → 功能入口 3列×2行(商店/单词本/学习报告/成就/关卡地图/伙伴)。
+    // 5 张模式卡 + 6 个功能入口比旧版 3 卡菜单内容多得多，用 k 系数整体纵向压缩，
+    // 保证 iPhone 375×667 到 414×896 都能一屏放完、不裁切、不与下方内容重叠（不做滚动）。
     _drawMenu(ctx, cv) {
         const W = cv.W, H = cv.H;
         const cw = Math.min(W - 32, 400), x0 = (W - cw) / 2;
-        let y = Math.max(48, H * 0.10);
+        const safeTop = cv.safeTop || 0;
+
+        // 基准尺寸（k=1 时的间距/高度），先心算出总纵向预算：
+        // 22+24+22+42+10=120（标题~统计行）；56*2+8*2=128 卡片两行；+50 每日卡=178；
+        // +14+20=34 分组标签；+46*2+8=100 功能两行；+14 底部余量 → needed=120+178+34+100+14=446
+        const base = {
+            titleGap: 22, subGap: 24, statsGap: 22, statsH: 42, gridGap: 10,
+            cardH: 56, cardGap: 8, dailyH: 50, secGap: 14, labelH: 20,
+            funcH: 46, funcGap: 8, bottomMargin: 14
+        };
+        const needed = base.titleGap + base.subGap + base.statsGap + base.statsH + base.gridGap
+            + base.cardH * 2 + base.cardGap * 2 + base.dailyH
+            + base.secGap + base.labelH
+            + base.funcH * 2 + base.funcGap + base.bottomMargin;
+        const topPad = Math.max(40, safeTop);
+        // 375×667: topPad=40, avail=627 > needed=446 → k=1（实测两档目标机型都不会触发压缩）
+        // 414×896: topPad=40, avail=856 > needed=446 → k=1，只是留白更多，符合"不滚动"要求
+        const k = Math.min(1, Math.max(0.72, (H - topPad) / needed));
+        const kf = Math.max(0.82, k);  // 字号下限比间距下限高，避免压缩到看不清
+
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillStyle = PX.ink; ctx.font = F.cnH(34);
+        let y = topPad + base.titleGap * k;
+        ctx.fillStyle = PX.ink; ctx.font = F.cnH(Math.round(34 * kf));
         ctx.fillText('单词消消乐', W / 2, y);
-        y += 32;
-        ctx.fillStyle = PX.soft; ctx.font = F.mono(13);
+        y += base.subGap * k;
+        ctx.fillStyle = PX.soft; ctx.font = F.mono(Math.round(13 * kf));
         ctx.fillText('WORD MATCH · CANVAS STAGE', W / 2, y);
-        y += 34;
-        // 统计面板：金币 / 关卡
-        panel(ctx, x0, y, cw, 54, PX.panel);
-        ctx.fillStyle = PX.ink; ctx.font = F.cn(16);
-        ctx.fillText(`金币 ${this.coins}      关卡 ${this.level}`, W / 2, y + 28);
-        y += 54 + 28;
+        y += base.statsGap * k;
+
+        // 统计行：关卡 / 金币（商店要消费，菜单必须看得见）/ 已学单词数（去重，口径与 DOM 版 statWords 一致）
+        const statsH = base.statsH * k;
+        panel(ctx, x0, y, cw, statsH, PX.panel);
+        const uniqueWords = new Set((this.learnedWords || []).map(w => w.en)).size;
+        ctx.fillStyle = PX.ink; ctx.font = F.cn(Math.round(15 * kf));
+        ctx.fillText(`关卡 ${this.level}   金币 ${this.coins}   单词 ${uniqueWords}`, W / 2, y + statsH / 2 + 1);
+        y += statsH + base.gridGap * k;
+
+        // 模式卡：2 列网格，daily 之外的 4 个模式一律走 selectMode（core 已支持这 5 种 mode）
+        const cardH = base.cardH * k, cardGap = base.cardGap * k;
+        const cardW = (cw - cardGap) / 2;
         const modes = [
-            ['story',   '闯 关 模 式', '三词一关 · 步数挑战', 3],
-            ['timed',   '限 时 模 式', '60 秒极速拼词',       1],
-            ['endless', '无 尽 模 式', '难度递增 · 无限拼词', 5]
+            ['story',   '闯 关', '步数挑战', 3],
+            ['timed',   '限 时', '60秒拼词', 1],
+            ['endless', '无 尽', '难度递增', 5],
+            ['review',  '复 习', '巩固记忆', 6]
         ];
-        for (const [mode, name, desc, ci] of modes) {
-            panel(ctx, x0, y, cw, 66, PX.panel);
+        modes.forEach(([mode, name, desc, ci], i) => {
+            const col = i % 2, row = Math.floor(i / 2);
+            const cx = x0 + col * (cardW + cardGap);
+            const cy = y + row * (cardH + cardGap);
+            panel(ctx, cx, cy, cardW, cardH, PX.panel);
+            const iconS = 24 * k;
             ctx.fillStyle = LETTER_COLORS[ci];
-            rr(ctx, x0 + 16, y + 17, 32, 32, 4); ctx.fill();
+            rr(ctx, cx + 10 * k, cy + (cardH - iconS) / 2, iconS, iconS, 4); ctx.fill();
             ctx.lineWidth = 2; ctx.strokeStyle = PX.ink;
-            rr(ctx, x0 + 16, y + 17, 32, 32, 4); ctx.stroke();
+            rr(ctx, cx + 10 * k, cy + (cardH - iconS) / 2, iconS, iconS, 4); ctx.stroke();
+            const tx = cx + 10 * k + iconS + 8 * k;
             ctx.textAlign = 'left';
-            ctx.fillStyle = PX.ink; ctx.font = F.cnH(18);
-            ctx.fillText(name, x0 + 64, y + 25);
-            ctx.fillStyle = PX.soft; ctx.font = F.cn(12);
-            ctx.fillText(desc, x0 + 64, y + 47);
+            ctx.fillStyle = PX.ink; ctx.font = F.cnH(Math.round(15 * kf));
+            ctx.fillText(name, tx, cy + cardH * 0.4);
+            ctx.fillStyle = PX.soft; ctx.font = F.cn(Math.round(10 * kf));
+            ctx.fillText(desc, tx, cy + cardH * 0.72);
             ctx.textAlign = 'center';
-            const m = mode;
-            cv.hits.push({ x: x0, y, w: cw, h: 66, action: () => this.selectMode(m) });
-            y += 66 + 16;
+            cv.hits.push({ x: cx, y: cy, w: cardW, h: cardH, action: () => this.selectMode(mode) });
+        });
+        y += cardH * 2 + cardGap;  // 两行卡片的总高
+
+        // 每日挑战：独占一行，读 dailyCompletions[今日 key] 决定角标/变灰文案；
+        // 允许完成后再玩（core 的 daily 奖励第二次起降为 200 分），所以卡片仍可点击
+        const dailyH = base.dailyH * k;
+        const todayDone = !!(this.dailyCompletions && this.dailyCompletions[this.getDateKey()]);
+        panel(ctx, x0, y, cw, dailyH, todayDone ? PX.panelDim : PX.panel);
+        const dIcon = 26 * k;
+        ctx.fillStyle = LETTER_COLORS[7];
+        rr(ctx, x0 + 12 * k, y + (dailyH - dIcon) / 2, dIcon, dIcon, 4); ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = PX.ink;
+        rr(ctx, x0 + 12 * k, y + (dailyH - dIcon) / 2, dIcon, dIcon, 4); ctx.stroke();
+        const dtx = x0 + 12 * k + dIcon + 8 * k;
+        ctx.textAlign = 'left';
+        ctx.fillStyle = todayDone ? PX.soft : PX.ink; ctx.font = F.cnH(Math.round(15 * kf));
+        ctx.fillText('每 日 挑 战', dtx, y + dailyH * 0.4);
+        ctx.fillStyle = PX.soft; ctx.font = F.cn(Math.round(10 * kf));
+        ctx.fillText('固定 3 词 · 额外积分', dtx, y + dailyH * 0.74);
+        if (todayDone) {
+            ctx.textAlign = 'right'; ctx.fillStyle = LETTER_COLORS[4]; ctx.font = F.cnH(Math.round(11 * kf));
+            ctx.fillText('今日已完成', x0 + cw - 12 * k, y + dailyH / 2);
         }
+        ctx.textAlign = 'center';
+        cv.hits.push({ x: x0, y, w: cw, h: dailyH, action: () => this.selectMode('daily') });
+        y += dailyH + base.secGap * k;
+
+        // 功能入口：3 列网格，方法名是团队契约（子模块实现），一个字都不改；
+        // 未实现前靠 NOOP_METHODS 兜底不报错，点了没反应但不会崩
+        ctx.textAlign = 'left'; ctx.fillStyle = PX.soft; ctx.font = F.cn(Math.round(11 * kf));
+        ctx.fillText('更多功能', x0, y + 8 * k);
+        ctx.textAlign = 'center';
+        y += base.labelH * k;
+        const funcGap = base.funcGap * k, funcH = base.funcH * k;
+        const funcW = (cw - funcGap * 2) / 3;
+        const funcs = [
+            ['商店',   () => this.openShop()],
+            ['单词本', () => this.showVocab()],
+            ['学习报告', () => this.showReport()],
+            ['成就',   () => this.openAchievements()],
+            ['关卡地图', () => this.openLevelMap()],
+            ['伙伴',   () => this.openCompanionScreen()]
+        ];
+        funcs.forEach(([label, action], i) => {
+            const col = i % 3, row = Math.floor(i / 3);
+            const fx = x0 + col * (funcW + funcGap);
+            const fy = y + row * (funcH + funcGap);
+            panel(ctx, fx, fy, funcW, funcH, PX.panel);
+            ctx.fillStyle = PX.ink; ctx.font = F.cnH(Math.round(13 * kf));
+            ctx.fillText(label, fx + funcW / 2, fy + funcH / 2 + 1);
+            cv.hits.push({ x: fx, y: fy, w: funcW, h: funcH, action });
+        });
     },
 
     _hudData() {
@@ -244,7 +343,7 @@ const canvasImpl = {
     _drawGame(ctx, cv) {
         const W = cv.W, H = cv.H;
         const cw = Math.min(W - 24, 420), x0 = (W - cw) / 2;
-        let y = 10;
+        let y = Math.max(10, cv.safeTop || 0);  // 安全区适配：刘海屏顶部起笔不被挡
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         // HUD：关卡 / 步数 / 分数
         const bw = (cw - 20) / 3;
@@ -268,9 +367,9 @@ const canvasImpl = {
             y += 22;
         }
         y = this._drawTarget(ctx, cv, x0, y, cw) + 12;
-        // 棋盘
+        // 棋盘（底部预算：按钮行 44 + 道具工具条约 42（_drawGameExtras，renderer-canvas-tools.js）+ 留白）
         const btnH = 44;
-        const avail = H - y - btnH - 26;
+        const avail = H - y - btnH - 68;
         const side = Math.max(120, Math.min(cw, avail));
         const n = this.boardSize, gap = 4;
         const tile = (side - (n - 1) * gap) / n;
@@ -412,11 +511,18 @@ const canvasImpl = {
         const now = performance.now();
         if (!cv.toast || cv.toast.until <= now) return;
         ctx.font = F.cn(14);
-        const w = Math.min(cv.W - 40, ctx.measureText(cv.toast.msg).width + 44);
+        // 超宽文案截断加省略号：气泡宽度封顶 W-40，文字不能画出气泡外
+        let msg = String(cv.toast.msg);
+        const maxTextW = cv.W - 40 - 44;
+        if (ctx.measureText(msg).width > maxTextW) {
+            while (msg.length > 1 && ctx.measureText(msg + '…').width > maxTextW) msg = msg.slice(0, -1);
+            msg += '…';
+        }
+        const w = Math.min(cv.W - 40, ctx.measureText(msg).width + 44);
         const x = (cv.W - w) / 2;
         panel(ctx, x, 12, w, 40, PX.ink, { shadow: PX.shadowSoft, stroke: PX.ink });
         ctx.fillStyle = PX.panel; ctx.textAlign = 'center';
-        ctx.fillText(cv.toast.msg, cv.W / 2, 12 + 21);
+        ctx.fillText(msg, cv.W / 2, 12 + 21);
     },
 
     _drawModal(ctx, cv) {
@@ -478,6 +584,9 @@ const canvasImpl = {
     updateHintButton() { this._invalidate(); },
     renderTimerFill() { this._invalidate(); },
     uiShowTimerBar() { this._invalidate(); },
+    // 每日卡状态刷新：菜单每帧都从 this.dailyCompletions 现读现画（见 _drawMenu），
+    // 不像 DOM 版需要手动改 innerHTML，重绘即等价于刷新
+    updateDailyCard() { this._invalidate(); },
 
     uiShowGameScreen() {
         const cv = this._cv;
@@ -708,7 +817,8 @@ const canvasImpl = {
 const NOOP_METHODS = [
     'applyEquippedTheme', 'applySkin', 'applyTileColor',
     'closeDetailModal', 'closeShop', 'finishTutorial', 'generateShareImage',
-    'openShop', 'renderAchievements', 'renderCompanionDock', 'renderCompanionShop',
+    'openAchievements', 'openCompanionScreen', 'openLevelMap', 'openShop',
+    'renderAchievements', 'renderCompanionDock', 'renderCompanionShop',
     'renderFavButton', 'renderLevelMap', 'renderShop', 'renderSoundToggle',
     'renderTTSToggle', 'renderTheme', 'sayCompanionLine', 'showReport',
     'showTutorialStep', 'showVocab', 'showWordDetail', 'spawnConfetti',
@@ -716,7 +826,7 @@ const NOOP_METHODS = [
     'uiClearBombTargets', 'uiHideInstallCard', 'uiHighlightHintLetter',
     'uiPromptCompanionName', 'uiRefreshCompanionShopIfOpen', 'uiSetBoardCursor',
     'uiToggleBombTarget', 'uiTriggerInstallPrompt',
-    'updateBombUI', 'updateDailyCard', 'updateEquipBar', 'updateToolUI'
+    'updateBombUI', 'updateEquipBar', 'updateToolUI'
 ];
 for (const name of NOOP_METHODS) {
     if (!canvasImpl[name]) canvasImpl[name] = noop;
