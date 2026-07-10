@@ -171,7 +171,16 @@ Object.assign(WordMatchGame.prototype, {
     },
 
     // ===== 来自 game-colors.js =====
-    applyTileColor(tile, letter) {
+    applyTileColor(tile, cell) {
+        // 万能块不进字母色表：清掉内联样式，外观全交给 .tile-wild 的 CSS
+        if (this.isWildCell(cell)) {
+            tile.style.removeProperty('background');
+            tile.style.color = '';
+            tile.style.border = '';
+            tile.style.textShadow = '';
+            return;
+        }
+        const letter = this.cellLetter(cell);
         const color = this.letterColorMap[letter] || LETTER_COLOR_PALETTE[0];
         const gradient = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg2} 100%)`;
         const fallbackPattern = LETTER_PATTERNS[(Math.max(0, letter.charCodeAt(0) - 65) % (LETTER_PATTERNS.length - 1)) + 1];

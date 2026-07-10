@@ -1,13 +1,7 @@
 // 通用 UI 逻辑：教程流程、成就解锁、开关状态（DOM 渲染已迁至 renderer-screens.js）
 Object.assign(WordMatchGame.prototype, {
-    applySkin() {
-        if (this.skin === 'pixel') {
-            document.body.dataset.skin = 'pixel';
-        } else {
-            delete document.body.dataset.skin;
-        }
-    },
-
+    // applySkin 的实现在 renderer-screens.js（渲染层，后加载覆盖）——此处不能有定义：
+    // 本文件会打进微信小游戏 bundle，出现 document 引用会破坏逻辑层纯度
     toggleSkin() {
         this.skin = this.skin === 'pixel' ? 'classic' : 'pixel';
         this.saveGlobal();

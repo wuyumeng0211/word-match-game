@@ -131,7 +131,9 @@ Object.assign(WordMatchGame.prototype, {
             this.bombs--;
             this.uiSetBoardCursor('');
             this.updateUI();
-            const matches = this.bombSelected.map(t => ({ r: t.r, c: t.c, letter: this.board[t.r][t.c] }));
+            // 有效字母：炸中十字块（'*A'）也按 A 收集，引爆由 processMatches 的扩散接管；
+            // 炸中万能块只移除不清盘（万能的触发权只在交换）
+            const matches = this.bombSelected.map(t => ({ r: t.r, c: t.c, letter: this.cellLetter(this.board[t.r][t.c]) }));
             this.bombSelected = [];
             this.uiClearBombTargets();
             this.isProcessing = true;

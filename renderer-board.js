@@ -15,8 +15,11 @@ Object.assign(WordMatchGame.prototype, {
         for (let r = 0; r < this.boardSize; r++) {
             for (let c = 0; c < this.boardSize; c++) {
                 const key = `${r},${c}`;
-                const letter = this.board[r][c];
-                const cls = 'tile-' + letter.toLowerCase();
+                const cell = this.board[r][c];
+                const letter = this.cellLetter(cell);
+                const isWild = this.isWildCell(cell);
+                const display = isWild ? '★' : letter;
+                const cls = isWild ? 'tile-wild' : 'tile-' + letter.toLowerCase() + (this.isCrossCell(cell) ? ' tile-cross' : '');
                 let skinCls = '';
                 if (boardSkin === 'crystal_board') skinCls = ' tile-crystal';
                 else if (boardSkin === 'pixel_board') skinCls = ' tile-pixel';
@@ -26,16 +29,16 @@ Object.assign(WordMatchGame.prototype, {
 
                 let tile = existing[key];
                 if (tile) {
-                    if (tile.textContent !== letter) tile.textContent = letter;
+                    if (tile.textContent !== display) tile.textContent = display;
                     if (tile.className !== fullClass) tile.className = fullClass;
-                    this.applyTileColor(tile, letter);
+                    this.applyTileColor(tile, cell);
                     delete existing[key];
                 } else {
                     tile = document.createElement('div');
                     tile.className = fullClass;
-                    tile.textContent = letter;
+                    tile.textContent = display;
                     tile.dataset.r = r; tile.dataset.c = c;
-                    this.applyTileColor(tile, letter);
+                    this.applyTileColor(tile, cell);
                     el.appendChild(tile);
                 }
             }

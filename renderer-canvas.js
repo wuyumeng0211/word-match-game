@@ -342,8 +342,10 @@ const canvasImpl = {
         const anim = cv.swapAnim, fx = cv.matchedFx, shake = cv.shake;
         for (let r = 0; r < n; r++) {
             for (let c = 0; c < n; c++) {
-                const letter = this.board[r] && this.board[r][c];
-                if (!letter) continue;
+                const cell = this.board[r] && this.board[r][c];
+                if (!cell) continue;
+                const isWild = this.isWildCell(cell), isCross = this.isCrossCell(cell);
+                const letter = isWild ? '★' : this.cellLetter(cell);
                 let px = bx + c * (tile + gap), py = by + r * (tile + gap);
                 let scale = 1, alpha = 1;
                 if (anim) {  // 交换动画：从对方格位滑到本格位（this.board 已是交换后状态）
@@ -371,11 +373,13 @@ const canvasImpl = {
                 const s = tile * scale;
                 const ox = px + (tile - s) / 2, oy = py + (tile - s) / 2;
                 ctx.globalAlpha = alpha;
-                panel(ctx, ox, oy, s, s, letterColor(letter), isSel ? { stroke: PX.ink, lw: 4 } : {});
+                panel(ctx, ox, oy, s, s, isWild ? PX.ink : letterColor(letter), isSel ? { stroke: PX.ink, lw: 4 } : {});
                 if (isHint) { ctx.lineWidth = 3; ctx.strokeStyle = LETTER_COLORS[1]; rr(ctx, ox - 3, oy - 3, s + 6, s + 6, 6); ctx.stroke(); }
                 if (isSel) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 4, oy + 4, s - 8, s - 8, 2); ctx.stroke(); }
+                if (isCross) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 3, oy + 3, s - 6, s - 6, 3); ctx.stroke(); }
                 ctx.fillStyle = '#fff'; ctx.font = F.mono(s * 0.48);
                 ctx.fillText(letter, ox + s / 2, oy + s / 2 + 1);
+                if (isCross) { ctx.font = F.mono(s * 0.22); ctx.fillText('✚', ox + s - s * 0.18, oy + s * 0.2); }
                 ctx.globalAlpha = 1;
             }
         }
