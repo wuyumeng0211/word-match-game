@@ -1,12 +1,16 @@
 // renderer-canvas.js — Canvas 渲染层（解耦第④步：微信小游戏舞台原型，先在浏览器跑通）
 // 与 renderer-*.js（DOM 舞台）互斥加载：本文件用同名原型方法的 Canvas 实现替换 DOM 实现。
-// 视觉规格来自 skin-pixel.css 头部的 design tokens（暖纸/墨色/降饱和八色/2px 硬边框/4px 圆角/2px 硬投影）。
+// 皮肤感知：跟随 this.skin（core 字段，'classic'|'pixel'，toggleSkin 切换）——
+// classic 对齐 DOM 版默认视觉（style.css 暖白面板 + 靛紫点睛 + letterColorMap 鲜艳字母块），
+// pixel 沿用 skin-pixel.css 的 design tokens（暖纸/墨色/降饱和八色/2px 硬边框/4px 圆角/2px 硬投影）。
+// 两套 token 表见下方 PIXEL/CLASSIC 常量，经 this._pxKit()/this._skin() 按帧动态选用。
 // 重绘策略：脏标记 + rAF；仅在有进行中动画时连续跑帧，静止画面零重绘。
 (() => {
 'use strict';
 
-// ── Design Tokens（源：skin-pixel.css）─────────────────────────
-const PX = {
+// ── Design Tokens：双皮肤 token 表，按 this.skin（'classic'|'pixel'）动态选用 ─────────────────────────
+// PIXEL（源：skin-pixel.css）：暖纸像素风，2px 硬边框 + 2px 硬投影 + 4px 小圆角
+const PIXEL = {
     paper:  '#f8f3ef',
     panel:  '#fffdf8',
     panelDim: '#f1e8dd',
@@ -15,13 +19,38 @@ const PX = {
     shadowSoft: '#e0d2c0'
 };
 // 八色扁平降饱和色板：字母块按 26 字母 8 色循环
-const LETTER_COLORS = ['#c76f5f','#d79a52','#c9b45c','#8ca872','#6fa39b','#7c94b6','#9d87ae','#c48fa0'];
-const letterColor = ch => LETTER_COLORS[(ch.charCodeAt(0) - 65 + 8 * 26) % 8];
-
-const F = {
+const PIXEL_LETTER_COLORS = ['#c76f5f','#d79a52','#c9b45c','#8ca872','#6fa39b','#7c94b6','#9d87ae','#c48fa0'];
+const pixelLetterColor = ch => PIXEL_LETTER_COLORS[(ch.charCodeAt(0) - 65 + 8 * 26) % 8];
+const F_PIXEL = {
     mono: s => `900 ${s}px "Courier New", ui-monospace, Menlo, monospace`,
     cn:   s => `700 ${s}px "PingFang SC", "Microsoft YaHei", sans-serif`,
     cnH:  s => `900 ${s}px "PingFang SC", "Microsoft YaHei", sans-serif`
+};
+
+// CLASSIC（源：style.css / config.js，对齐 DOM 版默认"暖白+靛紫点睛"大众风）：
+// 键与 PIXEL 一一对应，取值见下方注释（style.css 行号以本次改造时的文件版本为准）
+const CLASSIC = {
+    paperStart: '#f8f3ef',  // style.css:16 body { background: linear-gradient(135deg, #f8f3ef 0%, ...) } 起点
+    paper:      '#efe7f2',  // style.css:16 同一渐变终点 100%
+    panel:      '#fffdf9',  // style.css:4  :root { --book-panel: #fffdf9 }
+    panelDim:   '#f2eef8',  // style.css:5  :root { --book-panel-2: #f2eef8 }
+    ink:        '#3b3038',  // style.css:8  :root { --book-title: #3b3038 }
+    soft:       '#6f626c',  // style.css:9  :root { --book-text: #6f626c }
+    line:       '#d7c8bc',  // style.css:6  :root { --book-line: #d7c8bc }（面板描边/软投影基色）
+    shadowSoft: 'rgba(94,76,90,0.18)', // style.css:33 .game-container box-shadow 用色 rgba(94,76,90,*) 提取
+    accentStart:'#667eea',  // style.css:289/294/311/400 .shop-btn.buy 等按钮渐变起点
+    accentEnd:  '#764ba2'   // style.css:289/294/311/400 同一渐变终点
+};
+// 8 个 UI 强调色位（按钮/图标块/提示环等语义色），取自 config.js LETTER_COLOR_PALETTE 与 style.css 强调色，
+// 保证色相分明；索引语义：0 危险(计时条<10s) 1 提示/限时图标 2 备用 3 品牌靛紫(闯关图标+弹窗按钮)
+// 4 安全(计时条) 5 无尽图标 6 复习图标 7 每日图标
+const CLASSIC_LETTER_COLORS = ['#d81b60','#ff7f00','#009e73','#667eea','#00838f','#7055c7','#c43c8c','#9b6b00'];
+const classicLetterColor = ch => CLASSIC_LETTER_COLORS[(ch.charCodeAt(0) - 65 + 8 * 26) % 8];
+const F_CLASSIC = {
+    // style.css:13 body { font-family: -apple-system, ... } + .tile{font-weight:700}/.game-title{font-weight:800}
+    mono: s => `800 ${s}px -apple-system, "PingFang SC", "Helvetica Neue", Arial, sans-serif`,
+    cn:   s => `500 ${s}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`,
+    cnH:  s => `700 ${s}px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif`
 };
 
 function rr(ctx, x, y, w, h, r) {
@@ -30,16 +59,36 @@ function rr(ctx, x, y, w, h, r) {
     else ctx.rect(x, y, w, h);
 }
 
-// 像素三件套面板：2px 硬投影 + 填色 + 2px 墨色硬边框
-function panel(ctx, x, y, w, h, fill, opts) {
+// 像素三件套面板：2px 硬投影 + 填色 + 2px 墨色硬边框（现状不动）
+function panelPixel(ctx, x, y, w, h, fill, opts) {
     const o = opts || {};
     const r = o.r != null ? o.r : 4;
-    const shadow = o.shadow !== undefined ? o.shadow : PX.ink;
+    const shadow = o.shadow !== undefined ? o.shadow : PIXEL.ink;
     if (shadow) { ctx.fillStyle = shadow; rr(ctx, x + 2, y + 2, w, h, r); ctx.fill(); }
     ctx.fillStyle = fill; rr(ctx, x, y, w, h, r); ctx.fill();
     ctx.lineWidth = o.lw != null ? o.lw : 2;
-    ctx.strokeStyle = o.stroke || PX.ink;
+    ctx.strokeStyle = o.stroke || PIXEL.ink;
     rr(ctx, x, y, w, h, r); ctx.stroke();
+}
+
+// 大众风面板：无/浅描边 + 大圆角(12-16px) + 软投影——canvas 无原生模糊阴影 API 简易版，
+// 用 3 层递减透明度的偏移填充模拟 style.css 里 box-shadow rgba(94,76,90,*) 的柔和堆叠观感。
+// opts.shadow === null 时跳过（与像素版语义一致：调用方用它关闭薄面板/进度条的投影）
+function panelClassic(ctx, x, y, w, h, fill, opts) {
+    const o = opts || {};
+    const r = o.r != null ? o.r : 14;
+    if (o.shadow !== null) {
+        ctx.fillStyle = 'rgba(94,76,90,0.06)'; rr(ctx, x, y + 7, w, h, r); ctx.fill();
+        ctx.fillStyle = 'rgba(94,76,90,0.08)'; rr(ctx, x, y + 4, w, h, r); ctx.fill();
+        ctx.fillStyle = 'rgba(94,76,90,0.10)'; rr(ctx, x, y + 2, w, h, r); ctx.fill();
+    }
+    ctx.fillStyle = fill; rr(ctx, x, y, w, h, r); ctx.fill();
+    const lw = o.lw != null ? o.lw : 1;
+    if (lw > 0) {
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = o.stroke || CLASSIC.line;
+        rr(ctx, x, y, w, h, r); ctx.stroke();
+    }
 }
 
 // 中英混排按字符折行（canvas 无原生换行）
@@ -111,10 +160,19 @@ const canvasImpl = {
         // move/end 当前交互模型（点选两格）不需要，保留入口以兼容拖拽扩展
     },
 
+    // 皮肤判定：this.skin 未初始化/非法值一律落到 classic（网页版默认），仅 'pixel' 走像素风
+    _skin() {
+        return this.skin === 'pixel' ? 'pixel' : 'classic';
+    },
+
     // 共享绘制工具包：本文件的 tokens/helpers 在 IIFE 内私有，
-    // renderer-canvas-*.js 子模块（商店/伙伴/道具/学习）经此取用，保证同一套像素语言
+    // renderer-canvas-*.js 子模块（商店/伙伴/道具/学习）经此取用；每帧现取现算（不做模块级缓存），
+    // 皮肤切换后下一帧自动换装——这是本文件唯一的换肤入口，子模块一行不改
     _pxKit() {
-        return { PX, F, panel, rr, wrapText, LETTER_COLORS, letterColor };
+        if (this._skin() === 'pixel') {
+            return { PX: PIXEL, F: F_PIXEL, panel: panelPixel, rr, wrapText, LETTER_COLORS: PIXEL_LETTER_COLORS, letterColor: pixelLetterColor };
+        }
+        return { PX: CLASSIC, F: F_CLASSIC, panel: panelClassic, rr, wrapText, LETTER_COLORS: CLASSIC_LETTER_COLORS, letterColor: classicLetterColor };
     },
 
     // 刘海屏安全区：仅微信小游戏环境有 GameGlobal.wx，浏览器环境（本文件当前主要跑的环境）
@@ -181,7 +239,16 @@ const canvasImpl = {
         const cv = this._cv, ctx = cv.ctx;
         ctx.setTransform(cv.dpr, 0, 0, cv.dpr, 0, 0);
         ctx.clearRect(0, 0, cv.W, cv.H);
-        ctx.fillStyle = PX.paper;
+        // 页面底色：classic 铺双色渐变还原 style.css body 的 linear-gradient(135deg, #f8f3ef→#efe7f2)；
+        // pixel 保持单色平铺（PIXEL.paper）
+        if (this._skin() === 'pixel') {
+            ctx.fillStyle = PIXEL.paper;
+        } else {
+            const g = ctx.createLinearGradient(0, 0, cv.W, cv.H);
+            g.addColorStop(0, CLASSIC.paperStart);
+            g.addColorStop(1, CLASSIC.paper);
+            ctx.fillStyle = g;
+        }
         ctx.fillRect(0, 0, cv.W, cv.H);
         cv.hits = [];
         cv.boardRect = null;
@@ -200,17 +267,20 @@ const canvasImpl = {
     },
 
     // 布局：安全区顶部起笔 → 标题/副标题 → 统计行 → 2列×2行模式卡(闯关/限时/无尽/复习)
-    // → 每日挑战整行(带完成态) → 功能入口 3列×2行(商店/单词本/学习报告/成就/关卡地图/伙伴)。
-    // 5 张模式卡 + 6 个功能入口比旧版 3 卡菜单内容多得多，用 k 系数整体纵向压缩，
+    // → 每日挑战整行(带完成态) → 功能入口 3列×3行(商店/单词本/学习报告/成就/关卡地图/伙伴/皮肤切换，
+    // 第7个不满一整行，末行留白2格，与主流网格 UI 收尾方式一致)。
+    // 5 张模式卡 + 7 个功能入口比旧版 3 卡菜单内容多得多，用 k 系数整体纵向压缩，
     // 保证 iPhone 375×667 到 414×896 都能一屏放完、不裁切、不与下方内容重叠（不做滚动）。
     _drawMenu(ctx, cv) {
+        const { PX, F, panel, rr, LETTER_COLORS } = this._pxKit();
         const W = cv.W, H = cv.H;
         const cw = Math.min(W - 32, 400), x0 = (W - cw) / 2;
         const safeTop = cv.safeTop || 0;
 
         // 基准尺寸（k=1 时的间距/高度），先心算出总纵向预算：
         // 22+24+22+42+10=120（标题~统计行）；56*2+8*2=128 卡片两行；+50 每日卡=178；
-        // +14+20=34 分组标签；+46*2+8=100 功能两行；+14 底部余量 → needed=120+178+34+100+14=446
+        // +14+20=34 分组标签；46*3+8*2=154 功能三行（7 个入口，第7个是皮肤切换）；
+        // +14 底部余量 → needed=120+178+34+154+14=500
         const base = {
             titleGap: 22, subGap: 24, statsGap: 22, statsH: 42, gridGap: 10,
             cardH: 56, cardGap: 8, dailyH: 50, secGap: 14, labelH: 20,
@@ -219,10 +289,10 @@ const canvasImpl = {
         const needed = base.titleGap + base.subGap + base.statsGap + base.statsH + base.gridGap
             + base.cardH * 2 + base.cardGap * 2 + base.dailyH
             + base.secGap + base.labelH
-            + base.funcH * 2 + base.funcGap + base.bottomMargin;
+            + base.funcH * 3 + base.funcGap * 2 + base.bottomMargin;
         const topPad = Math.max(40, safeTop);
-        // 375×667: topPad=40, avail=627 > needed=446 → k=1（实测两档目标机型都不会触发压缩）
-        // 414×896: topPad=40, avail=856 > needed=446 → k=1，只是留白更多，符合"不滚动"要求
+        // 375×667: topPad=40, avail=627 > needed=500 → k=1（新增一行功能入口仍不触发压缩）
+        // 414×896: topPad=40, avail=856 > needed=500 → k=1，只是留白更多，符合"不滚动"要求
         const k = Math.min(1, Math.max(0.72, (H - topPad) / needed));
         const kf = Math.max(0.82, k);  // 字号下限比间距下限高，避免压缩到看不清
 
@@ -298,7 +368,8 @@ const canvasImpl = {
         y += dailyH + base.secGap * k;
 
         // 功能入口：3 列网格，方法名是团队契约（子模块实现），一个字都不改；
-        // 未实现前靠 NOOP_METHODS 兜底不报错，点了没反应但不会崩
+        // 未实现前靠 NOOP_METHODS 兜底不报错，点了没反应但不会崩。
+        // 第 7 个是皮肤切换（本次新增），显示"将切换到"的目标名，直接调 core 的 toggleSkin()
         ctx.textAlign = 'left'; ctx.fillStyle = PX.soft; ctx.font = F.cn(Math.round(11 * kf));
         ctx.fillText('更多功能', x0, y + 8 * k);
         ctx.textAlign = 'center';
@@ -311,7 +382,8 @@ const canvasImpl = {
             ['学习报告', () => this.showReport()],
             ['成就',   () => this.openAchievements()],
             ['关卡地图', () => this.openLevelMap()],
-            ['伙伴',   () => this.openCompanionScreen()]
+            ['伙伴',   () => this.openCompanionScreen()],
+            [this._skin() === 'pixel' ? '经典风格' : '像素风格', () => this.toggleSkin()]
         ];
         funcs.forEach(([label, action], i) => {
             const col = i % 3, row = Math.floor(i / 3);
@@ -341,6 +413,7 @@ const canvasImpl = {
     },
 
     _drawGame(ctx, cv) {
+        const { PX, F, panel, rr, LETTER_COLORS } = this._pxKit();
         const W = cv.W, H = cv.H;
         const cw = Math.min(W - 24, 420), x0 = (W - cw) / 2;
         let y = Math.max(10, cv.safeTop || 0);  // 安全区适配：刘海屏顶部起笔不被挡
@@ -410,6 +483,7 @@ const canvasImpl = {
     },
 
     _drawTarget(ctx, cv, x0, y, cw) {
+        const { PX, F, panel, LETTER_COLORS } = this._pxKit();
         const word = this.targetWord || '';
         const h = 100;
         panel(ctx, x0, y, cw, h, PX.panel);
@@ -452,14 +526,35 @@ const canvasImpl = {
         return y + h;
     },
 
-    // 字母取色：优先当关字母池的动态色位（同关不同字母不撞色），
-    // 色表未建时回落到 charCode 循环
+    // 字母取色（单色，供目标字母格等小面积场景用）：优先当关字母池的动态色位
+    // （同关不同字母不撞色），色表未建时（菜单/关卡切换瞬间）回落到 charCode 循环
     _pxColor(letter) {
+        const { LETTER_COLORS, letterColor } = this._pxKit();
         const info = this.letterColorMap && this.letterColorMap[letter];
-        return info && info.pxIndex !== undefined ? LETTER_COLORS[info.pxIndex] : letterColor(letter);
+        if (this._skin() === 'pixel') {
+            return info && info.pxIndex !== undefined ? LETTER_COLORS[info.pxIndex] : letterColor(letter);
+        }
+        return info && info.bg ? info.bg : letterColor(letter);
+    },
+
+    // 字母块完整配色信息（供棋盘大格子用）：classic 取 core 的 letterColorMap
+    // {bg,bg2,fg,border}（大众风渐变字母块），色表未建时兜底成 bg=bg2 的单色；
+    // pixel 走 8 色降饱和色板，fg 固定白字、border 固定墨色，与改造前视觉一致
+    _pxTileInfo(letter) {
+        const { PX, LETTER_COLORS, letterColor } = this._pxKit();
+        const info = this.letterColorMap && this.letterColorMap[letter];
+        if (this._skin() === 'pixel') {
+            const bg = info && info.pxIndex !== undefined ? LETTER_COLORS[info.pxIndex] : letterColor(letter);
+            return { bg, bg2: bg, fg: '#fff', border: PX.ink };
+        }
+        if (info && info.bg) return { bg: info.bg, bg2: info.bg2 || info.bg, fg: info.fg || '#fff', border: info.border || 'rgba(0,0,0,0.18)' };
+        const bg = letterColor(letter);
+        return { bg, bg2: bg, fg: '#fff', border: 'rgba(0,0,0,0.18)' };
     },
 
     _drawBoard(ctx, cv, bx, by, tile, gap, n) {
+        const { PX, F, panel, rr, LETTER_COLORS } = this._pxKit();
+        const skin = this._skin();
         const now = performance.now();
         const anim = cv.swapAnim, fx = cv.matchedFx, shake = cv.shake;
         for (let r = 0; r < n; r++) {
@@ -495,11 +590,40 @@ const canvasImpl = {
                 const s = tile * scale;
                 const ox = px + (tile - s) / 2, oy = py + (tile - s) / 2;
                 ctx.globalAlpha = alpha;
-                panel(ctx, ox, oy, s, s, isWild ? PX.ink : this._pxColor(letter), isSel ? { stroke: PX.ink, lw: 4 } : {});
+
+                // 字母块填色 + 描边 + 文字色：pixel 走扁平单色（现状不动）；
+                // classic 走 letterColorMap 的 bg→bg2 渐变 + fg 文字色 + border 描边，更大圆角；
+                // 万能块('?')两皮肤都单独定制，参考 style.css .tile-wild（深紫渐变+金字+金边）
+                let fillVal, strokeOpts, textColor;
+                if (isWild) {
+                    if (skin === 'classic') {
+                        const g = ctx.createLinearGradient(ox, oy, ox + s, oy + s);
+                        g.addColorStop(0, '#3b3663'); g.addColorStop(1, '#6b64a0');
+                        fillVal = g;
+                        strokeOpts = isSel ? { stroke: PX.ink, lw: 4, r: 10 } : { stroke: '#ffd700', lw: 2, r: 10 };
+                        textColor = '#ffd700';
+                    } else {
+                        fillVal = PX.ink;
+                        strokeOpts = isSel ? { stroke: PX.ink, lw: 4 } : {};
+                        textColor = '#fff';
+                    }
+                } else if (skin === 'classic') {
+                    const info = this._pxTileInfo(letter);
+                    const g = ctx.createLinearGradient(ox, oy, ox + s, oy + s);
+                    g.addColorStop(0, info.bg); g.addColorStop(1, info.bg2);
+                    fillVal = g;
+                    strokeOpts = isSel ? { stroke: PX.ink, lw: 4, r: 10 } : { stroke: info.border, lw: 1.5, r: 10 };
+                    textColor = info.fg;
+                } else {
+                    fillVal = this._pxColor(letter);
+                    strokeOpts = isSel ? { stroke: PX.ink, lw: 4 } : {};
+                    textColor = '#fff';
+                }
+                panel(ctx, ox, oy, s, s, fillVal, strokeOpts);
                 if (isHint) { ctx.lineWidth = 3; ctx.strokeStyle = LETTER_COLORS[1]; rr(ctx, ox - 3, oy - 3, s + 6, s + 6, 6); ctx.stroke(); }
                 if (isSel) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 4, oy + 4, s - 8, s - 8, 2); ctx.stroke(); }
                 if (isCross) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 3, oy + 3, s - 6, s - 6, 3); ctx.stroke(); }
-                ctx.fillStyle = '#fff'; ctx.font = F.mono(s * 0.48);
+                ctx.fillStyle = textColor; ctx.font = F.mono(s * 0.48);
                 ctx.fillText(letter, ox + s / 2, oy + s / 2 + 1);
                 if (isCross) { ctx.font = F.mono(s * 0.22); ctx.fillText('✚', ox + s - s * 0.18, oy + s * 0.2); }
                 ctx.globalAlpha = 1;
@@ -508,6 +632,7 @@ const canvasImpl = {
     },
 
     _drawToast(ctx, cv) {
+        const { PX, F, panel } = this._pxKit();
         const now = performance.now();
         if (!cv.toast || cv.toast.until <= now) return;
         ctx.font = F.cn(14);
@@ -526,6 +651,7 @@ const canvasImpl = {
     },
 
     _drawModal(ctx, cv) {
+        const { PX, F, panel, wrapText, LETTER_COLORS } = this._pxKit();
         const m = cv.modal;
         ctx.fillStyle = 'rgba(74,59,47,0.45)';  // 半透明遮罩
         ctx.fillRect(0, 0, cv.W, cv.H);
@@ -563,7 +689,14 @@ const canvasImpl = {
             y += sentH + 14;
         }
         const btnW = Math.min(200, mw - 60), btnX = (cv.W - btnW) / 2;
-        panel(ctx, btnX, y, btnW, 46, LETTER_COLORS[3]);
+        // 主按钮：classic 用 style.css .shop-btn.buy 同款 #667eea→#764ba2 渐变；pixel 仍走扁平色板
+        let btnFill = LETTER_COLORS[3];
+        if (this._skin() === 'classic') {
+            const g = ctx.createLinearGradient(btnX, y, btnX + btnW, y + 46);
+            g.addColorStop(0, CLASSIC.accentStart); g.addColorStop(1, CLASSIC.accentEnd);
+            btnFill = g;
+        }
+        panel(ctx, btnX, y, btnW, 46, btnFill);
         ctx.fillStyle = '#fff'; ctx.font = F.cnH(16);
         ctx.fillText(m.btn || '继续', cv.W / 2, y + 24);
         cv.modalBtnRect = { x: btnX, y, w: btnW, h: 46 };
@@ -587,6 +720,11 @@ const canvasImpl = {
     // 每日卡状态刷新：菜单每帧都从 this.dailyCompletions 现读现画（见 _drawMenu），
     // 不像 DOM 版需要手动改 innerHTML，重绘即等价于刷新
     updateDailyCard() { this._invalidate(); },
+
+    // 皮肤切换（core.toggleSkin() 改完 this.skin 后调用）：DOM 版靠 body.dataset.skin 切 CSS，
+    // Canvas 版没有 DOM 节点可切——所有 _draw* 方法每帧都经 this._pxKit()/this._skin() 现取 token，
+    // 重绘一次即完成换装，无需额外状态搬运
+    applySkin() { this._invalidate(); },
 
     uiShowGameScreen() {
         const cv = this._cv;
@@ -815,7 +953,7 @@ const canvasImpl = {
 
 // ═══════════ 其余舞台方法：no-op 兜底（商店/成就/单词本/报告/教程/伙伴/皮肤等，Canvas 菜单未画入口）═══════════
 const NOOP_METHODS = [
-    'applyEquippedTheme', 'applySkin', 'applyTileColor',
+    'applyEquippedTheme', 'applyTileColor',
     'closeDetailModal', 'closeShop', 'finishTutorial', 'generateShareImage',
     'openAchievements', 'openCompanionScreen', 'openLevelMap', 'openShop',
     'renderAchievements', 'renderCompanionDock', 'renderCompanionShop',
