@@ -178,10 +178,15 @@ Object.assign(WordMatchGame.prototype, {
             tile.style.color = '';
             tile.style.border = '';
             tile.style.textShadow = '';
+            delete tile.dataset.px;
+            delete tile.dataset.pxc;
             return;
         }
         const letter = this.cellLetter(cell);
         const color = this.letterColorMap[letter] || LETTER_COLOR_PALETTE[0];
+        // 像素皮肤取色位：按当关字母池动态分配（同关不同字母不撞色），溢出周期叠纹理
+        tile.dataset.px = color.pxIndex !== undefined ? color.pxIndex : 0;
+        if (color.pxCycle) tile.dataset.pxc = '1'; else delete tile.dataset.pxc;
         const gradient = `linear-gradient(135deg, ${color.bg} 0%, ${color.bg2} 100%)`;
         const fallbackPattern = LETTER_PATTERNS[(Math.max(0, letter.charCodeAt(0) - 65) % (LETTER_PATTERNS.length - 1)) + 1];
         const pattern = this.colorBlindMode ? fallbackPattern : color.pattern;

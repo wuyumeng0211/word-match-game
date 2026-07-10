@@ -63,11 +63,21 @@ Object.assign(WordMatchGame.prototype, {
             const nearestDistance = previousColors.length
                 ? Math.min(...previousColors.map(previous => this.colorDistance(color.bg, previous.bg)))
                 : Infinity;
-            const needsPattern = nearestDistance < 52;
+            // 阈值 52→58：色板里的近亲对（双蓝/双绿/双橙）Lab 距离多在 52~58 之间，
+            // 旧阈值放过了它们——相邻不同字母看起来同色，消除时误判
+            const needsPattern = nearestDistance < 58;
             const pattern = needsPattern
                 ? LETTER_PATTERNS[(index % (LETTER_PATTERNS.length - 1)) + 1]
                 : '';
-            this.letterColorMap[letter] = { ...color, pattern };
+            // pxIndex：像素皮肤/Canvas 的 8 色位。按字母池顺序分配（目标字母排前），
+            // 每关池内前 8 个字母保证互不同色；第 9 个起循环用色，pxCycle 标记
+            // 溢出周期，皮肤叠抖色纹理区分。旧版按 charCode 静态循环（A/I/Q/Y 全红），
+            // 同一关不同字母撞色是常态——这就是"不同字母颜色相同"的根源。
+            this.letterColorMap[letter] = {
+                ...color, pattern,
+                pxIndex: index % 8,
+                pxCycle: Math.floor(index / 8)
+            };
         });
     }
 });

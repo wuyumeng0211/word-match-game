@@ -324,7 +324,7 @@ const canvasImpl = {
             got[ch] = (got[ch] || 0) + 1;
             const collected = (this.collectedLetters[ch] || 0) >= got[ch];
             const arriving = cv.arriving.some(a => a.letter === ch && a.occurrence === got[ch] - 1 && a.until > now);
-            panel(ctx, sx, sy, s, s, collected ? letterColor(ch) : PX.panelDim,
+            panel(ctx, sx, sy, s, s, collected ? this._pxColor(ch) : PX.panelDim,
                 arriving ? { stroke: LETTER_COLORS[1], lw: 3 } : { shadow: collected ? PX.ink : null });
             ctx.fillStyle = collected ? '#fff' : PX.soft;
             ctx.font = F.mono(s * 0.55);
@@ -335,6 +335,13 @@ const canvasImpl = {
         ctx.fillStyle = PX.ink; ctx.font = F.cn(13);
         ctx.fillText(this.targetChinese || '', x0 + cw / 2, y + h - 16);
         return y + h;
+    },
+
+    // 字母取色：优先当关字母池的动态色位（同关不同字母不撞色），
+    // 色表未建时回落到 charCode 循环
+    _pxColor(letter) {
+        const info = this.letterColorMap && this.letterColorMap[letter];
+        return info && info.pxIndex !== undefined ? LETTER_COLORS[info.pxIndex] : letterColor(letter);
     },
 
     _drawBoard(ctx, cv, bx, by, tile, gap, n) {
@@ -373,7 +380,7 @@ const canvasImpl = {
                 const s = tile * scale;
                 const ox = px + (tile - s) / 2, oy = py + (tile - s) / 2;
                 ctx.globalAlpha = alpha;
-                panel(ctx, ox, oy, s, s, isWild ? PX.ink : letterColor(letter), isSel ? { stroke: PX.ink, lw: 4 } : {});
+                panel(ctx, ox, oy, s, s, isWild ? PX.ink : this._pxColor(letter), isSel ? { stroke: PX.ink, lw: 4 } : {});
                 if (isHint) { ctx.lineWidth = 3; ctx.strokeStyle = LETTER_COLORS[1]; rr(ctx, ox - 3, oy - 3, s + 6, s + 6, 6); ctx.stroke(); }
                 if (isSel) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 4, oy + 4, s - 8, s - 8, 2); ctx.stroke(); }
                 if (isCross) { ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; rr(ctx, ox + 3, oy + 3, s - 6, s - 6, 3); ctx.stroke(); }

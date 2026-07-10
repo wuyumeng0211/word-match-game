@@ -275,33 +275,24 @@ body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile::before {
     border-radius: 2px;
     background: var(--px-blue);
 }
-/* 26 字母 → 8 色循环映射（相邻字母不同色） */
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-a::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-i::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-q::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-y::before { background: var(--px-red); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-b::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-j::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-r::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-z::before { background: var(--px-orange); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-c::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-k::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-s::before { background: var(--px-yellow); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-d::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-l::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-t::before { background: var(--px-green); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-e::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-m::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-u::before { background: var(--px-teal); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-f::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-n::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-v::before { background: var(--px-blue); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-g::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-o::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-w::before { background: var(--px-purple); }
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-h::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-p::before,
-body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile-x::before { background: var(--px-pink); }
+/* 字母池动态 8 色（data-px 由 JS 按当关字母池分配：目标字母排前，池内前 8 个
+   字母互不同色——旧版按 charCode 静态循环，同一关 A/I/Q/Y 全红必然撞色）。
+   data-pxc="1"：第 9 个起的溢出周期循环用色，叠棋盘格抖色纹理区分。 */
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="0"]::before { background: var(--px-red); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="1"]::before { background: var(--px-orange); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="2"]::before { background: var(--px-yellow); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="3"]::before { background: var(--px-green); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="4"]::before { background: var(--px-teal); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="5"]::before { background: var(--px-blue); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="6"]::before { background: var(--px-purple); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-px="7"]::before { background: var(--px-pink); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile[data-pxc="1"]::before {
+    background-image: conic-gradient(rgba(255,255,255,0.26) 0 25%, transparent 0 50%, rgba(255,255,255,0.26) 0 75%, transparent 0);
+    background-size: 8px 8px;
+}
+/* 特殊块（最小标识，美术精修在后续 PR）：万能块墨底金星，十字块沿用其字母色+描边 */
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile.tile-wild::before { background: var(--px-ink); }
+body[data-skin="pixel"]:not(:has(#colorBlindToggle:checked)) .tile.tile-wild { color: var(--px-yellow) !important; }
 
 /* 选中按下态：去投影 + 平移 + 墨色描边（mockup .tile.sel） */
 body[data-skin="pixel"] .tile.selected {
