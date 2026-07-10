@@ -53,32 +53,38 @@
                 <div class="stats-item"><div class="num" id="statWords">0</div><div class="label">已学单词</div></div>
                 <div class="stats-item"><div class="num" id="statVocab">0</div><div class="label">收藏单词</div></div>
             </div>
-            <div style="display:flex;gap:8px;justify-content:center;margin-top:10px">
-                <button class="btn btn-secondary" data-action="vocab" style="flex:1">📖 我的单词本</button>
-                <button class="btn btn-secondary" data-action="shop" style="flex:1">🛒 外观商店</button>
-                <button class="btn btn-secondary" data-action="report" style="flex:1">📊 学习报告</button>
-                <button class="btn btn-secondary" data-action="skin" style="flex:1">🕹️ 像素风格</button>
+            <div class="home-nav-grid home-section">
+                <button class="btn btn-secondary" data-action="vocab">📖 我的单词本</button>
+                <button class="btn btn-secondary" data-action="shop">🛒 外观商店</button>
+                <button class="btn btn-secondary" data-action="report">📊 学习报告</button>
+                <button class="btn btn-secondary" data-action="skin">🕹️ 像素风格</button>
             </div>
-            <div class="install-card" id="installCard">
+            <div class="install-card home-section" id="installCard">
                 <div>
                     <div class="title">📱 安装到手机桌面</div>
                     <div class="desc">像 App 一样打开，离线也能进入游戏</div>
                 </div>
                 <button class="btn btn-primary" data-action="install" style="padding:6px 10px">安装</button>
             </div>
-            <div class="equip-bar" id="equipBar" style="margin-top:8px"></div>
-            <div class="accessibility-settings">
-                <label class="setting-toggle"><input type="checkbox" id="reduceMotionToggle"> 减少动效</label>
-                <label class="setting-toggle"><input type="checkbox" id="colorBlindToggle"> 色弱辅助纹理</label>
+            <div class="home-section">
+                <div class="section-title">🎒 我的装备</div>
+                <div class="equip-bar" id="equipBar"></div>
             </div>
-            <div class="level-map-section" id="levelMapSection" style="margin-top:16px">
-                <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px">🗺️ 冒险地图</div>
+            <div class="level-map-section home-section" id="levelMapSection">
+                <div class="section-title">🗺️ 冒险地图</div>
                 <div class="level-map" id="levelMap"></div>
+                <div class="home-tip">💡 游戏中点击 ⭐ 可收藏单词，随时在单词本中复习</div>
             </div>
-            <div style="margin-top:12px;font-size:12px;color:#888;text-align:center">💡 游戏中点击 ⭐ 可收藏单词，随时在单词本中复习</div>
-            <div class="achievements-section" id="achievementsSection" style="margin-top:16px">
-                <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:10px">🏆 成就徽章</div>
+            <div class="achievements-section home-section" id="achievementsSection">
+                <div class="section-title">🏆 成就徽章</div>
                 <div class="achievements-grid" id="achievementsGrid"></div>
+            </div>
+            <div class="home-section">
+                <div class="section-title">⚙️ 设置</div>
+                <div class="accessibility-settings">
+                    <label class="setting-toggle"><input type="checkbox" id="reduceMotionToggle"> 减少动效</label>
+                    <label class="setting-toggle"><input type="checkbox" id="colorBlindToggle"> 色弱辅助纹理</label>
+                </div>
             </div>
         </div>
 
