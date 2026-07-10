@@ -151,6 +151,17 @@ Object.assign(WordMatchGame.prototype, {
         return { growth, evolved };
     },
 
+    // 称号独立可查（进化仪式要展示"旧称号 → 新称号"的跨越）
+    getCompanionLevelLabel(id, level) {
+        const labels = {
+            dino: ['幼年探险家','荒野侦察员','远古守护者','烈焰猎手','陨星霸王','创世神龙'],
+            mecha: ['基础机体','重装先锋','苍蓝统帅','量子骑士','虹光战神','永恒守望者'],
+            princess: ['星愿学徒','星辉公主','银河女王','极光仙子','虹羽圣女','永恒星神']
+        };
+        const labelArr = labels[id] || labels.dino;
+        return labelArr[Math.max(0, Math.min(level, labelArr.length) - 1)];
+    },
+
     getCompanionGrowth(id) {
         const THRESHOLDS = [0, 3, 8, 16, 28, 45];
         const MAX = THRESHOLDS.length; // 6
@@ -159,22 +170,16 @@ Object.assign(WordMatchGame.prototype, {
         for (let i = 0; i < THRESHOLDS.length; i++) {
             if (points >= THRESHOLDS[i]) level = i + 1;
         }
-        const labels = {
-            dino: ['幼年探险家','荒野侦察员','远古守护者','烈焰猎手','陨星霸王','创世神龙'],
-            mecha: ['基础机体','重装先锋','苍蓝统帅','量子骑士','虹光战神','永恒守望者'],
-            princess: ['星愿学徒','星辉公主','银河女王','极光仙子','虹羽圣女','永恒星神']
-        };
         const isMax = level >= MAX;
         const cur = THRESHOLDS[level - 1];
         const next = isMax ? THRESHOLDS[MAX - 1] : THRESHOLDS[level];
         const span = isMax ? 1 : (next - cur);
         const percent = isMax ? 100 : (points - cur) / span * 100;
-        const labelArr = labels[id] || labels.dino;
         return {
             points, level, max: MAX, isMax,
             next: isMax ? 'MAX' : next,
             percent: Math.min(100, Math.round(percent)),
-            label: labelArr[Math.min(level, MAX) - 1],
+            label: this.getCompanionLevelLabel(id, level),
             name: this.getCompanionName(id)
         };
     },

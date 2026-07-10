@@ -110,30 +110,84 @@ Object.assign(WordMatchGame.prototype, {
         }, dur);
     },
 
+    // 进化仪式编舞：聚气(0-1.45s) → 白闪变身(1.45-2.08s，峰值 1.75s 换新形态) → 亮相
+    // 与 sound.js 的 'evolve' 音序逐幕对齐；点舞台可快进；reduce-motion 直跳亮相终态
     showEvolveModal(id, growth) {
         const modal = document.getElementById('evolveModal');
         if (!modal) return;
         const companion = COMPANIONS.find(c => c.id === id) || COMPANIONS[0];
+        const stage = document.getElementById('evolveStage');
         const hero = document.getElementById('evolveHero');
+        const labelOld = document.getElementById('evolveLabelOld');
         const label = document.getElementById('evolveLabel');
         const lineEn = document.getElementById('evolveLineEn');
         const lineZh = document.getElementById('evolveLineZh');
-        if (hero) hero.innerHTML = this.getCompanionAvatarHTML(companion, growth.level);
-        if (label) label.textContent = `${this._escapeHtml(growth.name)} · ${growth.label}`;
+        const prevLevel = Math.max(1, growth.level - 1);
+        if (labelOld) labelOld.textContent = this.getCompanionLevelLabel(id, prevLevel);
+        if (label) label.textContent = `${growth.name} · ${growth.label}`;
         const lines = (COMPANION_LINES[id] || {}).evolve || [];
         const line = lines.length ? lines[Math.floor(Math.random() * lines.length)] : { en: '', zh: '' };
-        const safeName = this._escapeHtml(growth.name);
-        if (lineEn) lineEn.textContent = line.en.replace(/\{name\}/g, growth.name);
+        const spoken = line.en.replace(/\{name\}/g, growth.name);
+        if (lineEn) lineEn.textContent = spoken;
         if (lineZh) lineZh.textContent = line.zh.replace(/\{name\}/g, growth.name);
-        // 进化弹窗优先，挂起后续 win 弹窗/气泡
-        modal.classList.add('active');
-        this.sound.play('win');
-        this.speakCompanionLine(id, line.en.replace(/\{name\}/g, growth.name));
-        this.spawnConfetti(modal.querySelector('.modal-content'));
+
+        if (this._evolveTimers) this._evolveTimers.forEach(clearTimeout);
+        const timers = this._evolveTimers = [];
+        const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+        if (stage) stage.querySelectorAll('.evolve-particle').forEach(p => p.remove());
+
+        // 第三幕（也是快进的落点）：新形态落定 + 报幕 + 语音 + 金屑
+        let revealed = false;
+        const reveal = () => {
+            if (revealed) return;
+            revealed = true;
+            timers.forEach(clearTimeout);
+            if (hero) hero.innerHTML = this.getCompanionAvatarHTML(companion, growth.level);
+            if (stage) {
+                stage.classList.remove('phase-charge', 'phase-flash');
+                stage.classList.add('phase-reveal');
+                stage.querySelectorAll('.evolve-particle').forEach(p => p.remove());
+                stage.onclick = null;
+            }
+            this.speakCompanionLine(id, spoken);
+            this.spawnConfetti(stage);
+        };
+
+        // 进化弹窗优先，挂起后续 win 弹窗/气泡（时序机制与旧版一致）
+        if (this.reduceMotion || !stage) {
+            if (stage) stage.className = 'evolve-stage';
+            modal.classList.add('active');
+            this.sound.play('win');
+            reveal();
+        } else {
+            // 第一幕：旧形态低饱和微颤 + 光环脉冲 + 金色粒子向心汇聚
+            stage.className = 'evolve-stage phase-charge';
+            if (hero) hero.innerHTML = this.getCompanionAvatarHTML(companion, prevLevel);
+            for (let i = 0; i < 14; i++) {
+                const p = document.createElement('div');
+                p.className = 'evolve-particle';
+                const ang = Math.random() * Math.PI * 2;
+                const dist = 110 + Math.random() * 90;
+                p.style.setProperty('--tx', `${Math.round(Math.cos(ang) * dist)}px`);
+                p.style.setProperty('--ty', `${Math.round(Math.sin(ang) * dist)}px`);
+                p.style.setProperty('--d', `${(Math.random() * 0.5).toFixed(2)}s`);
+                stage.appendChild(p);
+            }
+            modal.classList.add('active');
+            this.sound.play('evolve');
+            at(1450, () => stage.classList.add('phase-flash'));
+            // 第二幕峰值：世界最亮的一帧完成形态替换（观众看不到换装缝隙）
+            at(1750, () => { if (hero) hero.innerHTML = this.getCompanionAvatarHTML(companion, growth.level); });
+            at(2080, reveal);
+            stage.onclick = (e) => { if (e.target.id !== 'evolveBtn') reveal(); };
+        }
+
         const btn = document.getElementById('evolveBtn');
-        if (btn) btn.onclick = () => {
+        if (btn) btn.onclick = (e) => {
+            e.stopPropagation();
             modal.classList.remove('active');
             SpeechAdapter.cancelSpeech();
+            timers.forEach(clearTimeout);
             const cb = this._afterEvolveClose;
             this._afterEvolveClose = null;
             if (cb) cb();

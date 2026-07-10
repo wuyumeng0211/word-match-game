@@ -149,16 +149,21 @@
         </div>
     </div>
 
-    <div class="modal" id="evolveModal">
-        <div class="modal-content evolve-modal-content">
-            <div class="modal-icon">✨</div>
-            <div class="evolve-title">进化成功！</div>
+    <!-- 进化仪式：三幕式全屏演出（聚气 → 白闪变身 → 光芒亮相），编舞在 renderer-companion.js -->
+    <div class="modal evolve-overlay" id="evolveModal">
+        <div class="evolve-stage" id="evolveStage">
+            <div class="evolve-rays"></div>
+            <div class="evolve-ring"></div>
             <div class="evolve-hero" id="evolveHero"></div>
-            <div class="evolve-label" id="evolveLabel"></div>
-            <div class="evolve-line-en" id="evolveLineEn"></div>
-            <div class="evolve-line-zh" id="evolveLineZh"></div>
-            <div style="margin-top:12px">
-                <button class="btn btn-primary" id="evolveBtn" style="width:100%">太棒啦！</button>
+            <div class="evolve-flash"></div>
+            <div class="evolve-charge-hint">羁绊满溢……</div>
+            <div class="evolve-title-card">
+                <div class="evolve-title">进 化 ！</div>
+                <div class="evolve-label-old" id="evolveLabelOld"></div>
+                <div class="evolve-label" id="evolveLabel"></div>
+                <div class="evolve-line-en" id="evolveLineEn"></div>
+                <div class="evolve-line-zh" id="evolveLineZh"></div>
+                <button class="btn btn-primary evolve-btn" id="evolveBtn">太棒啦！</button>
             </div>
         </div>
     </div>

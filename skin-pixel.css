@@ -441,6 +441,16 @@ body[data-skin="pixel"] .achievement-card { background: var(--px-panel); border:
 body[data-skin="pixel"] .achievement-card.unlocked { background: var(--px-panel); border: var(--px-border); box-shadow: var(--px-shadow); }
 body[data-skin="pixel"] .achievement-card .name { color: var(--px-ink); }
 body[data-skin="pixel"] .achievement-card .desc { color: var(--px-soft); }
+/* 进化仪式像素化：圆润光效换成硬边像素语言（方粒子/直角光环/像素字标题） */
+/* 暗场必须压过上面 .modal 的浅遮罩（仪式的沉浸感靠它），用墨色深调保持像素世界观 */
+body[data-skin="pixel"] .modal.evolve-overlay { background: rgba(30, 22, 16, 0.95); }
+body[data-skin="pixel"] .evolve-particle { border-radius: 0; box-shadow: none; width: 6px; height: 6px; background: var(--px-yellow); }
+body[data-skin="pixel"] .evolve-ring { border-radius: 8px; box-shadow: none; border-color: var(--px-yellow); }
+/* 暗场上的金字要比 --px-yellow（降饱和）亮一档才立得住，配硬阴影保像素感 */
+body[data-skin="pixel"] .evolve-title { font-family: var(--px-font-zh); font-weight: 900; letter-spacing: 5px; background: none; color: #ffd76a; -webkit-text-fill-color: currentColor; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+body[data-skin="pixel"] .evolve-label { color: #ffd76a; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
+body[data-skin="pixel"] .evolve-rays { background: repeating-conic-gradient(rgba(240,210,100,0.22) 0 10deg, transparent 10deg 30deg); }
+
 body[data-skin="pixel"] .section-title { color: var(--px-ink); }
 body[data-skin="pixel"] .home-tip { color: var(--px-soft); }
 body[data-skin="pixel"] .install-card { background: var(--px-panel); border: var(--px-border); border-radius: var(--px-radius); box-shadow: var(--px-shadow); }
