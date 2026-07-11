@@ -64,6 +64,15 @@ class SoundManager {
             }
             case 'collect': tone(880, 0.25, 'sine', 0.15); break;
             case 'win': [[523, 659, 784], [587, 740, 880], [659, 830, 988]].forEach((ch, i) => ch.forEach(f => tone(f, 0.4, 'triangle', 0.06))); break;
+            case 'evolve': {
+                // 与进化仪式三幕对齐：0-1.4s 聚气上行琶音 → 1.55s 变身重音 → 2.05s 亮相大和弦 + 顶部星光
+                // 原样移植自 sound.js（Web 版），仅套壳进本文件的 try/catch tone() 封装
+                [262, 330, 392, 523, 659, 784].forEach((f, i) => tone(f, 0.24, 'sine', 0.07, i * 0.22));
+                tone(1046, 0.5, 'triangle', 0.1, 1.55);
+                [[523, 659, 784, 1046], [587, 740, 880, 1175]].forEach((ch, i) => ch.forEach(f => tone(f, 0.9, 'triangle', 0.05, 2.05 + i * 0.12)));
+                tone(1568, 0.7, 'sine', 0.05, 2.35);
+                break;
+            }
             case 'lose': tone(200, 0.5, 'sawtooth', 0.08); break;
             case 'invalid': tone(150, 0.1, 'square', 0.06); break;
             case 'tick': tone(800, 0.05, 'sine', 0.05); break;
