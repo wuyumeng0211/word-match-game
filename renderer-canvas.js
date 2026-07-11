@@ -200,6 +200,8 @@ const canvasImpl = {
     _animActive() {
         const cv = this._cv, now = performance.now();
         if (!cv) return false;
+        // 全屏覆盖层（进化仪式等，见 renderer-canvas-companion.js）：时间驱动，存续期间持续跑帧
+        if (cv.overlay) return true;
         if (cv.swapAnim || cv.shake) return true;
         if (cv.matchedFx && now - cv.matchedFx.start < cv.matchedFx.dur) return true;
         if (cv.fallingUntil > now) return true;
@@ -215,6 +217,11 @@ const canvasImpl = {
         if (!cv) return;
         const rect = cv.canvas.getBoundingClientRect();
         const x = clientX - rect.left, y = clientY - rect.top;
+        // 覆盖层最优先吞输入（比 modal 更高层）：cv.overlay.onTap(x, y) 自行处理快进/按钮
+        if (cv.overlay) {
+            if (cv.overlay.onTap) cv.overlay.onTap(x, y);
+            return;
+        }
         if (cv.modal) {  // 弹窗打开时吞掉其余输入
             const b = cv.modalBtnRect;
             if (b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) {
@@ -263,6 +270,8 @@ const canvasImpl = {
             else this._drawGame(ctx, cv);
         }
         if (cv.modal) this._drawModal(ctx, cv);
+        // 全屏覆盖层画在弹窗之上、toast 之下：cv.overlay = { draw(ctx,cv), onTap(x,y) }
+        if (cv.overlay && cv.overlay.draw) cv.overlay.draw.call(this, ctx, cv);
         this._drawToast(ctx, cv);
     },
 
